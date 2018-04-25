@@ -14,7 +14,7 @@
         {
             _blueprintContainers = new Dictionary<Blueprint, BlueprintContainer>();
             _matcher = new List<ComponentMatcher>();
-            _entityToBlueprint = new Dictionary<Entity, Blueprint>();
+            _entityToBlueprint = new Dictionary<Entity, Blueprint>(new EntityEqualityComparer());
         }
 
         public IComponentMatcher GetMatcher(params Type[] types)

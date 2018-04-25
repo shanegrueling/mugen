@@ -2,7 +2,7 @@
 {
     using Math;
 
-    internal struct Position : IComponent
+    public struct Position : IComponent
     {
         public int2 Value;
     }

@@ -16,11 +16,6 @@
             return new int2(i1.X + i2.X, i1.Y + i2.Y);
         }
 
-        /*public static int2 operator +(int2 i1, int2 i2)
-        {
-            return new int2(i1.X + i2.X, i1.Y + i2.Y);
-        }*/
-
         public static int2 operator -(in int2 i1, in int2 i2)
         {
             return new int2(i1.X - i2.X, i1.Y - i2.Y);

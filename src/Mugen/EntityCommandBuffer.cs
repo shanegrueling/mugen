@@ -6,18 +6,18 @@
     internal class EntityCommandBuffer : IEntityCommandBuffer
     {
         private readonly EntityManager _manager;
-        private readonly List<Action<EntityManager>> _commandList;
+        private readonly List<IEntityCommand> _commandList;
 
         public EntityCommandBuffer(EntityManager manager)
         {
             _manager = manager;
-            _commandList = new List<Action<EntityManager>>();
+            _commandList = new List<IEntityCommand>();
         }
 
         public INewEntityCommandBuffer CreateEntity(Blueprint blueprint)
         {
             var necb = new NewEntityCommandBuffer(this, blueprint);
-            _commandList.Add(manager => necb.Invoke(manager));
+            _commandList.Add(necb);
 
             return necb;
         }
@@ -44,38 +44,39 @@
 
         public void Playback()
         {
-            foreach(var command in _commandList)
+            for (var i = 0; i < _commandList.Count; ++i)
             {
-                command(_manager);
+                _commandList[i].Invoke();
             }
 
             _commandList.Clear();
         }
 
-        private class NewEntityCommandBuffer : INewEntityCommandBuffer
+        private interface IEntityCommand
+        {
+            void Invoke();
+        }
+
+        private class NewEntityCommandBuffer : INewEntityCommandBuffer, IEntityCommand
         {
             private readonly EntityCommandBuffer _parent;
             private Entity _entity;
-            private Blueprint _blueprint;
-            private List<Action<EntityManager>> _commandList;
+            private readonly Blueprint _blueprint;
+            private readonly List<INewEntityCommand> _commandList;
 
             public NewEntityCommandBuffer(EntityCommandBuffer parent, Blueprint blueprint)
             {
                 _parent = parent;
                 _blueprint = blueprint;
-                _commandList = new List<Action<EntityManager>>()
+                _commandList = new List<INewEntityCommand>(blueprint.Types.Length + 1)
                 {
-                    (manager => _entity = manager.CreateEntity(_blueprint))
+                    new CreateEntity(this)
                 };
             }
 
             public INewEntityCommandBuffer ReplaceComponent<T>(T component) where T : struct, IComponent
             {
-                _commandList.Add(manager =>
-                {
-                    ref var comp = ref manager.GetComponent<T>(_entity);
-                    comp = component;
-                });
+                _commandList.Add(new ReplaceEntity<T>(this, component));
 
                 return this;
             }
@@ -85,11 +86,49 @@
                 return _parent;
             }
 
-            public void Invoke(EntityManager manager)
+            public void Invoke()
             {
-                foreach(var command in _commandList)
+                for (var i = 0; i < _commandList.Count; ++i)
                 {
-                    command(manager);
+                    _commandList[i].Invoke();
+                }
+            }
+
+            private interface INewEntityCommand
+            {
+                void Invoke();
+            }
+
+            private class CreateEntity : INewEntityCommand
+            {
+                private readonly NewEntityCommandBuffer _buffer;
+
+                public CreateEntity(NewEntityCommandBuffer buffer)
+                {
+                    _buffer = buffer;
+                }
+
+                public void Invoke()
+                {
+                    _buffer._entity = _buffer._parent._manager.CreateEntity(_buffer._blueprint);
+                }
+            }
+
+            private class ReplaceEntity<T> : INewEntityCommand where T : struct, IComponent
+            {
+                private readonly NewEntityCommandBuffer _buffer;
+                private readonly T _comp;
+
+                public ReplaceEntity(NewEntityCommandBuffer buffer, T component)
+                {
+                    _buffer = buffer;
+                    _comp = component;
+                }
+
+                public void Invoke()
+                {
+                    ref var comp = ref _buffer._parent._manager.GetComponent<T>(_buffer._entity);
+                    comp = _comp;
                 }
             }
         }

@@ -5,10 +5,10 @@
     internal static class ComponentArrayFactory
     {
         private static readonly Type ComponentArrayType = typeof(ComponentArray<>);
-        public static IComponentArray CreateNew(Type t)
+        public static IComponentArray CreateNew(Type t, int capacity)
         {
             var genericType = ComponentArrayType.MakeGenericType(t);
-            return (IComponentArray)Activator.CreateInstance(genericType);
+            return (IComponentArray)Activator.CreateInstance(genericType, capacity);
         }
     }
 }

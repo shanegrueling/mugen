@@ -1,7 +1,7 @@
 ﻿namespace Mugen.Benchmark.Generated.ComponentSystems
 {
     using Components;
-
+    
     internal class Move : IUpdateSystem
     {
         private readonly Mover _mover;
@@ -32,7 +32,7 @@
         }
     }
 
-    internal class Move2 : IUpdateSystem
+    public class Move2 : IUpdateSystem
     {
         private readonly IComponentMatcher _matcher;
         public bool HasUpdateMethod => true;

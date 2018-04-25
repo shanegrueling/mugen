@@ -30,7 +30,7 @@
 
         public StructList(IEnumerable<T> collection)
         {
-            switch(collection)
+            switch (collection)
             {
                 case null:
                     throw new ArgumentNullException(nameof(collection));
@@ -124,6 +124,16 @@
             _items[Count++] = item;
         }
 
+        public void Add()
+        {
+            if (Count == _items.Length)
+            {
+                EnsureCapacity(Count+1);
+            }
+
+            ++Count;
+        }
+
         private void EnsureCapacity(int min)
         {
             if (_items.Length >= min)
@@ -147,7 +157,7 @@
                 throw new ArgumentOutOfRangeException(nameof(index), index, "The index was to big.");
             }
 
-            Count--;
+            --Count;
             if (index < Count)
             {
                 Array.Copy(_items, index + 1, _items, index, Count - index);

@@ -1,6 +1,7 @@
 ﻿namespace Mugen
 {
     using System;
+    using System.Collections.Generic;
 
     public struct Entity : IEquatable<Entity>
     {
@@ -43,5 +44,13 @@
         {
             return !left.Equals(right);
         }
+    }
+    
+
+    public class EntityEqualityComparer : IEqualityComparer<Entity>
+    {
+        public bool Equals(Entity x, Entity y) => x.Equals(y);
+
+        public int GetHashCode(Entity obj) => obj.GetHashCode();
     }
 }

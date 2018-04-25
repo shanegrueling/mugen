@@ -31,7 +31,7 @@
         public ref T this[int index] => ref _components[index];
         public void CreateNew()
         {
-            Add(new T());
+            _components.Add();
         }
     }
 }

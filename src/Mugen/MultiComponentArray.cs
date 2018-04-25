@@ -54,38 +54,38 @@
             _version = _manager?.Version ?? 0;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref T GetInternal(int index)
+        public ref T this[int index]
         {
-            if((_manager?.Version ?? 0) != _version) Reset();
-            if(_currentArray == null) ThrowHelper.ThrowArgumentOutOfRangeException();
-
-            var localIndex = index - _startCurrentArray;
-
-            if(localIndex < 0)
+            get
             {
+                if((_manager?.Version ?? 0) != _version) Reset();
+                if(_currentArray == null) ThrowHelper.ThrowArgumentOutOfRangeException();
+
+                var localIndex = index - _startCurrentArray;
+
+                if(localIndex < 0)
+                {
+                    // ReSharper disable once PossibleNullReferenceException
+                    _currentArray = _currentArray.Previous;
+                    // ReSharper disable once PossibleNullReferenceException
+                    _startCurrentArray -= _currentArray.Value.Count;
+
+                    return ref this[index];
+                }
+
                 // ReSharper disable once PossibleNullReferenceException
-                _currentArray = _currentArray.Previous;
-                // ReSharper disable once PossibleNullReferenceException
-                _startCurrentArray -= _currentArray.Value.Count;
+                var c = _currentArray.Value.Count;
 
-                return ref GetInternal(index);
-            }
+                if(localIndex < c)
+                {
+                    return ref _currentArray.Value[localIndex];
+                }
 
-            // ReSharper disable once PossibleNullReferenceException
-            var c = _currentArray.Value.Count;
-
-            if(localIndex < c)
-            {
-                return ref _currentArray.Value[localIndex];
-            }
-
-            _startCurrentArray += c;
-            _currentArray = _currentArray.Next;
+                _startCurrentArray += c;
+                _currentArray = _currentArray.Next;
             
-            return ref GetInternal(index);
+                return ref this[index];
+            }
         }
-
-        public ref T this[int index] => ref GetInternal(index);
     }
 }

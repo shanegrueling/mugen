@@ -3,15 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugen", "Mugen\Mugen.csproj", "{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen", "Mugen\Mugen.csproj", "{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StructList", "StructList\StructList.csproj", "{87D24DC0-A4A7-40B5-AE67-8D07C0D2F6BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StructList", "StructList\StructList.csproj", "{87D24DC0-A4A7-40B5-AE67-8D07C0D2F6BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugen.Benchmark", "Mugen.Benchmark\Mugen.Benchmark.csproj", "{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Benchmark", "Mugen.Benchmark\Mugen.Benchmark.csproj", "{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugen.Math", "Mugen.Math\Mugen.Math.csproj", "{26D8F1E2-BA31-4123-9A62-BBDA172DE312}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Math", "Mugen.Math\Mugen.Math.csproj", "{26D8F1E2-BA31-4123-9A62-BBDA172DE312}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
