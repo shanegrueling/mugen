@@ -69,7 +69,7 @@
             return entity;
         }
 
-        public ref T GetComponent<T>(Entity entity) where T : struct, IComponent
+        public ref T GetComponent<T>(in Entity entity) where T : struct, IComponent
         {
             return ref _blueprintContainers[_entityToBlueprint[entity]].GetComponent<T>(entity);
         }

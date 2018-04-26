@@ -1,20 +1,19 @@
 ﻿namespace Mugen
 {
     using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
     using StructList;
 
     internal class MultiComponentArray<T> : IMultiComponentArray, IComponentArray<T> where T : struct, IComponent
     {
-        private readonly LinkedList<ComponentArray<T>> _arrays;
+        private readonly LinkedList<ComponentArrayPool<T>> _arrays;
 
-        private LinkedListNode<ComponentArray<T>> _currentArray;
+        private LinkedListNode<ComponentArrayPool<T>> _currentArray;
         private int _startCurrentArray;
         private readonly EntityManager _manager;
         private int _version;
         private int _length;
 
-        public int Length
+        public int Count
         {
             get
             {
@@ -36,12 +35,12 @@
             _manager = manager;
             _version = manager?.Version ?? 0;
             _length = -1;
-            _arrays = new LinkedList<ComponentArray<T>>();
+            _arrays = new LinkedList<ComponentArrayPool<T>>();
         }
 
         public void Add(object componentArray)
         {
-            _arrays.AddLast((ComponentArray<T>)componentArray);
+            _arrays.AddLast((ComponentArrayPool<T>)componentArray);
 
             if(_currentArray == null) _currentArray = _arrays.First;
         }

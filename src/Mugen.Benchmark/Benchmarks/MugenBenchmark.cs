@@ -38,22 +38,21 @@
 
             var r = new Random();
 
-            var buffer = world.EntityManager.CreateBuffer();
-
             for(var i = 0; i < Entites; ++i)
             {
-                buffer.CreateEntity(blueprintMover)
-                      .ReplaceComponent(new Position {Value = new int2(r.Next(), r.Next())})
-                      .ReplaceComponent(new Velocity {Value = new int2(r.Next(-5, 5), r.Next(-5, 5))})
-                      .Finish();
+                var mover = world.EntityManager.CreateEntity(blueprintMover);
+                ref var pos = ref world.EntityManager.GetComponent<Position>(mover);
+                pos.Value = new int2(r.Next(), r.Next());
+                ref var vel = ref world.EntityManager.GetComponent<Velocity>(mover);
+                vel.Value = new int2(r.Next(-5, 5), r.Next(-5, 5));
 
-                buffer.CreateEntity(blueprintSpawner)
-                    .ReplaceComponent(new Position {Value = new int2(r.Next(), r.Next())})
-                    .ReplaceComponent(new Spawner { SecondsTillLastSpawn = (float)r.NextDouble(), SecondsBetweenSpawns = 1})
-                    .Finish();
+                var spawner = world.EntityManager.CreateEntity(blueprintSpawner);
+                ref var sPos = ref world.EntityManager.GetComponent<Position>(spawner);
+                sPos.Value = new int2(r.Next(), r.Next());
+                ref var sSpawner = ref world.EntityManager.GetComponent<Spawner>(spawner);
+                sSpawner.SecondsTillLastSpawn = (float)r.NextDouble();
+                sSpawner.SecondsBetweenSpawns = 1;
             }
-
-            buffer.Playback();
 
             return world;
         }
@@ -77,9 +76,18 @@
         }
 
         [Benchmark]
-        public void UpdateWorldWithSpawners10Times()
+        public void UpdateWorldWithSpawners30Times()
         {
-            for (var i = 0; i < 10; ++i)
+            for (var i = 0; i < 30; ++i)
+            {
+                _world4.Update(0.033f).Wait();
+            }
+        }
+
+        [Benchmark]
+        public void UpdateWorldWithSpawners300Times()
+        {
+            for (var i = 0; i < 300; ++i)
             {
                 _world4.Update(0.033f).Wait();
             }
@@ -92,7 +100,7 @@
         }
 
         [Benchmark]
-        public void WorldWithSpawnerAndMover()
+        public void WorldWithSpawnerAndMoverAndSimulating1SecondUpdates()
         {
             var world = new World(null);
 
@@ -103,21 +111,21 @@
 
             var r = new Random();
 
-            var buffer = world.EntityManager.CreateBuffer();
-
             for (var i = 0; i < 5000; ++i)
             {
-                buffer.CreateEntity(blueprintMover)
-                    .ReplaceComponent(new Position {Value = new int2(r.Next(), r.Next())})
-                    .ReplaceComponent(new Velocity {Value = new int2(r.Next(-5, 5), r.Next(-5, 5))}).Finish();
+                var mover = world.EntityManager.CreateEntity(blueprintMover);
+                ref var pos = ref world.EntityManager.GetComponent<Position>(mover);
+                pos.Value = new int2(r.Next(), r.Next());
+                ref var vel = ref world.EntityManager.GetComponent<Velocity>(mover);
+                vel.Value = new int2(r.Next(-5, 5), r.Next(-5, 5));
 
-                buffer.CreateEntity(blueprintSpawner)
-                    .ReplaceComponent(new Position {Value = new int2(r.Next(), r.Next())})
-                    .ReplaceComponent(new Spawner {SecondsTillLastSpawn = (float) r.NextDouble(), SecondsBetweenSpawns = 1})
-                    .Finish();
+                var spawner = world.EntityManager.CreateEntity(blueprintSpawner);
+                ref var sPos = ref world.EntityManager.GetComponent<Position>(spawner);
+                sPos.Value = new int2(r.Next(), r.Next());
+                ref var sSpawner = ref world.EntityManager.GetComponent<Spawner>(spawner);
+                sSpawner.SecondsTillLastSpawn = (float)r.NextDouble();
+                sSpawner.SecondsBetweenSpawns = 1;
             }
-
-            buffer.Playback();
 
             for (var i = 0; i < 30; ++i)
             {

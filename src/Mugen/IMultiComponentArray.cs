@@ -2,7 +2,7 @@
 {
     internal interface IMultiComponentArray
     {
-        int Length { get; }
+        int Count { get; }
         void Add(object componentArray);
     }
 }

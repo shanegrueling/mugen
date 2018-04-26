@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Benchmark", "Mugen.Be
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Math", "Mugen.Math\Mugen.Math.csproj", "{26D8F1E2-BA31-4123-9A62-BBDA172DE312}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugen.Test", "Mugen.Test\Mugen.Test.csproj", "{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -36,6 +38,10 @@ Global
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,55 +1,78 @@
-﻿namespace Mugen
+﻿using System.Runtime.CompilerServices;
+
+[assembly:InternalsVisibleTo("Mugen.Test"), InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
+namespace Mugen
 {
     using System;
-    using System.Collections.Generic;
 
     internal class EntityCommandBuffer : IEntityCommandBuffer
     {
-        private readonly EntityManager _manager;
-        private readonly List<IEntityCommand> _commandList;
+        private readonly IEntityManager _manager;
+        private IEntityCommand[] _commandList;
+        private int _commandCount;
 
-        public EntityCommandBuffer(EntityManager manager)
+        public EntityCommandBuffer(IEntityManager manager)
         {
             _manager = manager;
-            _commandList = new List<IEntityCommand>();
+            _commandList = new IEntityCommand[16];
+            _commandCount = 0;
+        }
+
+        private void AddCommand(IEntityCommand command)
+        {
+            if (_commandCount >= _commandList.Length)
+            {
+                var n = new IEntityCommand[_commandCount * 2];
+                Array.Copy(_commandList, n, _commandCount);
+                _commandList = n;
+            }
+            _commandList[_commandCount++] = command;
         }
 
         public INewEntityCommandBuffer CreateEntity(Blueprint blueprint)
         {
             var necb = new NewEntityCommandBuffer(this, blueprint);
-            _commandList.Add(necb);
+            
+            AddCommand(necb);
 
             return necb;
         }
 
-        public IEntityCommandBuffer AddComponent<T>(Entity entity)
+        public IEntityCommandBuffer AddComponent<T>(in Entity entity)
         {
             throw new NotImplementedException();
         }
 
-        public IEntityCommandBuffer AddComponent<T>(Entity entity, T component)
+        public IEntityCommandBuffer AddComponent<T>(in Entity entity, in T component)
         {
             throw new NotImplementedException();
         }
 
-        public IEntityCommandBuffer ReplaceComponent<T>(Entity entity, T component)
+        public IEntityCommandBuffer ReplaceComponent<T>(in Entity entity, in T component)
         {
             throw new NotImplementedException();
         }
 
-        public IEntityCommandBuffer RemoveComponent<T>(Entity entity)
+        public IEntityCommandBuffer SetComponent<T>(in Entity entity, in T component)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEntityCommandBuffer RemoveComponent<T>(in Entity entity)
         {
             throw new NotImplementedException();
         }
 
         public void Playback()
         {
-            for (var i = 0; i < _commandList.Count; ++i)
+            for (var i = 0; i < _commandCount; ++i)
             {
                 _commandList[i].Invoke();
             }
 
-            _commandList.Clear();
+            Array.Clear(_commandList, 0, _commandCount);
+            _commandCount = 0;
         }
 
         private interface IEntityCommand
@@ -62,33 +85,29 @@
             private readonly EntityCommandBuffer _parent;
             private Entity _entity;
             private readonly Blueprint _blueprint;
-            private readonly List<INewEntityCommand> _commandList;
+            private readonly INewEntityCommand[] _commandList;
+            private int _commandCount;
 
             public NewEntityCommandBuffer(EntityCommandBuffer parent, Blueprint blueprint)
             {
                 _parent = parent;
                 _blueprint = blueprint;
-                _commandList = new List<INewEntityCommand>(blueprint.Types.Length + 1)
-                {
-                    new CreateEntity(this)
-                };
+                _commandList = new INewEntityCommand[blueprint.Types.Length];
             }
 
-            public INewEntityCommandBuffer ReplaceComponent<T>(T component) where T : struct, IComponent
+            public INewEntityCommandBuffer ReplaceComponent<T>(in T component) where T : struct, IComponent
             {
-                _commandList.Add(new ReplaceEntity<T>(this, component));
+                _commandList[_commandCount++] = new ReplaceEntity<T>(this, component);
 
                 return this;
             }
 
-            public IEntityCommandBuffer Finish()
-            {
-                return _parent;
-            }
+            public IEntityCommandBuffer Finish() => _parent;
 
             public void Invoke()
             {
-                for (var i = 0; i < _commandList.Count; ++i)
+                _entity = _parent._manager.CreateEntity(_blueprint);
+                for (var i = 0; i < _commandCount; ++i)
                 {
                     _commandList[i].Invoke();
                 }
@@ -99,27 +118,12 @@
                 void Invoke();
             }
 
-            private class CreateEntity : INewEntityCommand
-            {
-                private readonly NewEntityCommandBuffer _buffer;
-
-                public CreateEntity(NewEntityCommandBuffer buffer)
-                {
-                    _buffer = buffer;
-                }
-
-                public void Invoke()
-                {
-                    _buffer._entity = _buffer._parent._manager.CreateEntity(_buffer._blueprint);
-                }
-            }
-
             private class ReplaceEntity<T> : INewEntityCommand where T : struct, IComponent
             {
                 private readonly NewEntityCommandBuffer _buffer;
                 private readonly T _comp;
 
-                public ReplaceEntity(NewEntityCommandBuffer buffer, T component)
+                public ReplaceEntity(NewEntityCommandBuffer buffer, in T component)
                 {
                     _buffer = buffer;
                     _comp = component;

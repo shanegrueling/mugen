@@ -8,7 +8,7 @@
         private readonly Type[] _requiredTypes;
         private readonly IMultiComponentArray[] _componentArrays;
 
-        public int Length => _componentArrays[0].Length;
+        public int Length => _componentArrays[0].Count;
 
         public ComponentMatcher(EntityManager manager, Type[] types)
         {

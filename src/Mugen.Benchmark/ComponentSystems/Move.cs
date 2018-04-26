@@ -4,7 +4,7 @@
 
     internal static class Move
     {
-        public static void Update(float deltaTime, IMover components)
+        public static void Update(IMover components)
         {
             var l = components.Length;
             var p = components.Positions;
@@ -17,7 +17,7 @@
                 position.Value = position.Value + velocity.Value;
             }
         }
-        public static void Update(float deltaTime, int length, IComponentArray<Position> positions, IComponentArray<Velocity> velocities)
+        public static void Update(int length, IComponentArray<Position> positions, IComponentArray<Velocity> velocities)
         {
             for(var i = 0; i < length; ++i)
             {
@@ -28,7 +28,7 @@
             }
         }
 
-        public static void Update(float deltaTime, ref Position position, ref Velocity velocity)
+        public static void Update(ref Position position, in Velocity velocity)
         {
             position.Value = position.Value + velocity.Value;
         }
