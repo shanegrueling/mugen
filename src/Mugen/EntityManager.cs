@@ -1,6 +1,7 @@
 ﻿namespace Mugen
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
 
     internal class EntityManager : IEntityManager
@@ -11,11 +12,26 @@
 
         private readonly List<ComponentMatcher> _matcher;
 
+        private struct EntityInfo
+        {
+            public int BlueprintIndex;
+            public int Version;
+        }
+
+        private EntityInfo[] _entityInfos;
+        private int _entityCount;
+
+        private readonly Queue<int> _freeEntities;
+
+
         public EntityManager()
         {
             _blueprints = new List<Blueprint>();
             _blueprintContainers = new List<BlueprintContainer>();
             _matcher = new List<ComponentMatcher>();
+
+            _entityInfos = ArrayPool<EntityInfo>.Shared.Rent(1024);
+            _freeEntities = new Queue<int>();
         }
 
         public IComponentMatcher GetMatcher(params Type[] types)
@@ -61,7 +77,22 @@
         public Entity CreateEntity(Blueprint blueprint)
         {
             var entity = Entity.Create();
-            entity.BlueprintIndex = blueprint.Index;
+            
+            entity.EntityInfoIndex = _freeEntities.Count > 0 ? _freeEntities.Dequeue() : _entityCount++;
+
+            if(_entityCount > _entityInfos.Length)
+            {
+                var newEntityInfoArray = ArrayPool<EntityInfo>.Shared.Rent(_entityInfos.Length * 2);
+                Array.Copy(_entityInfos, newEntityInfoArray, _entityInfos.Length);
+                ArrayPool<EntityInfo>.Shared.Return(_entityInfos);
+                
+                _entityInfos = newEntityInfoArray;
+            }
+
+            ref var entityInfo = ref _entityInfos[entity.EntityInfoIndex];
+            entityInfo.BlueprintIndex = blueprint.Index;
+            entityInfo.Version += 1;
+
             _blueprintContainers[blueprint.Index].AddEntity(entity);
 
             ++Version;
@@ -71,7 +102,7 @@
 
         public ref T GetComponent<T>(in Entity entity) where T : struct, IComponent
         {
-            return ref _blueprintContainers[entity.BlueprintIndex].GetComponent<T>(entity);
+            return ref _blueprintContainers[_entityInfos[entity.EntityInfoIndex].BlueprintIndex].GetComponent<T>(entity);
         }
     }
 

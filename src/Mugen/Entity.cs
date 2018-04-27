@@ -7,12 +7,12 @@
     {
         private static int _counter;
         private readonly int _id;
-        internal int BlueprintIndex { get; set; }
+        internal int EntityInfoIndex { get; set; }
 
         private Entity(int id)
         {
             _id = id;
-            BlueprintIndex = 0;
+            EntityInfoIndex = 0;
         }
 
         public static Entity Create() => new Entity(_counter++);
