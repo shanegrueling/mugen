@@ -2,6 +2,7 @@
 {
     using System;
     using System.Buffers;
+    using System.Runtime.CompilerServices;
     using StructList;
 
     public sealed class ComponentArray<T> : IComponentArray<T>, IComponentArray where T : struct, IComponent
@@ -76,7 +77,7 @@
                 Array.Copy(_components, index + 1, _components, index, Count - index);
             }
 
-            _components[Count] = default(T);
+            _components[Count] = default;
         }
 
         public void CreateNew()
@@ -87,6 +88,10 @@
 
         public int Count { get; private set; }
 
-        public ref T this[int index] => ref _components[index];
+        public ref T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _components[index];
+        }
     }
 }

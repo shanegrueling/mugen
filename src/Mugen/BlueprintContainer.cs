@@ -3,6 +3,7 @@
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
 
     internal class BlueprintContainer
     {
@@ -10,29 +11,36 @@
         private Entity[] _entity;
         private int _entityCount;
         private readonly Dictionary<Entity, int> _entityToIndex;
-        private readonly Dictionary<Type, IComponentArray> _componentArrays;
+        private readonly IComponentArray[] _componentArrays;
 
         public BlueprintContainer(Blueprint blueprint)
         {
             _blueprint = blueprint;
-            _componentArrays = new Dictionary<Type, IComponentArray>(_blueprint.Types.Length);
+            _componentArrays = new IComponentArray[_blueprint.Types.Length];
             _entity = ArrayPool<Entity>.Shared.Rent(1024);
             _entityToIndex = new Dictionary<Entity, int>(new EntityEqualityComparer());
 
-            foreach(var blueprintType in _blueprint.Types)
+            for(var i = 0; i < _blueprint.Types.Length; ++i)
             {
-                _componentArrays[blueprintType] = ComponentArrayFactory.CreateNew(blueprintType, 1024);
+                _componentArrays[i] = ComponentArrayFactory.CreateNew(blueprint.Types[i], 1024);
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public object GetComponentArray(Type requiredType)
         {
-            return _componentArrays[requiredType];
+            for(var i = 0; i < _blueprint.Types.Length; i++)
+            {
+                if(_blueprint.Types[i] == requiredType) return _componentArrays[i];
+            }
+
+            return null;
         }
 
-        public IComponentArray<T> GetComponentArray<T>() where T : struct, IComponent
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ComponentArrayPool<T> GetComponentArray<T>() where T : struct, IComponent
         {
-            return (IComponentArray<T>)GetComponentArray(typeof(T));
+            return (ComponentArrayPool<T>) GetComponentArray(typeof(T));
         }
 
         private void EnsureCapacity(int count)
@@ -51,9 +59,10 @@
             _entityToIndex.Add(entity, _entityCount);
             EnsureCapacity(_entityCount + 1);
             _entity[_entityCount++] = entity;
-            foreach(var componentArray in _componentArrays)
+
+            for(var i = 0; i < _componentArrays.Length; ++i)
             {
-                componentArray.Value.CreateNew();
+                _componentArrays[i].CreateNew();
             }
         }
 
