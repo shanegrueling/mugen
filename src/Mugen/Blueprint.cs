@@ -6,6 +6,7 @@
     public sealed class Blueprint
     {
         internal Type[] Types { get; }
+        internal int Index { get; set; }
 
         internal Blueprint(params Type[] types)
         {
