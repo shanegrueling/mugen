@@ -7,7 +7,7 @@
     {
         static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<MugenBenchmark>();
+            var summary = BenchmarkRunner.Run<MarshalBenchmark>();
         }
     }
 }

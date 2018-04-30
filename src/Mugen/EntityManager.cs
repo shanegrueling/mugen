@@ -1,10 +1,11 @@
 ﻿namespace Mugen
 {
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
-    internal class EntityManager : IEntityManager
+    internal unsafe class EntityManager : IEntityManager
     {
         internal int Version;
         private readonly List<Blueprint> _blueprints;
@@ -18,7 +19,8 @@
             public int Version;
         }
 
-        private EntityInfo[] _entityInfos;
+        private EntityInfo* _entityInfos;
+        private int _size;
         private int _entityCount;
 
         private readonly Queue<int> _freeEntities;
@@ -30,7 +32,8 @@
             _blueprintContainers = new List<BlueprintContainer>();
             _matcher = new List<ComponentMatcher>();
 
-            _entityInfos = ArrayPool<EntityInfo>.Shared.Rent(1024);
+            _size = 1024;
+            _entityInfos = (EntityInfo*) Marshal.AllocHGlobal(_size * sizeof(EntityInfo));
             _freeEntities = new Queue<int>();
         }
 
@@ -80,15 +83,12 @@
             
             entity.EntityInfoIndex = _freeEntities.Count > 0 ? _freeEntities.Dequeue() : _entityCount++;
 
-            if(_entityCount > _entityInfos.Length)
+            if(_entityCount > _size)
             {
-                var newEntityInfoArray = ArrayPool<EntityInfo>.Shared.Rent(_entityInfos.Length * 2);
-                Array.Copy(_entityInfos, newEntityInfoArray, _entityInfos.Length);
-                ArrayPool<EntityInfo>.Shared.Return(_entityInfos);
-                
-                _entityInfos = newEntityInfoArray;
+                Resize();
             }
 
+            // ReSharper disable once PossibleNullReferenceException
             ref var entityInfo = ref _entityInfos[entity.EntityInfoIndex];
             entityInfo.BlueprintIndex = blueprint.Index;
             entityInfo.Version += 1;
@@ -98,6 +98,14 @@
             ++Version;
 
             return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Resize()
+        {
+            _size *= 2;
+
+            _entityInfos = (EntityInfo*)Marshal.ReAllocHGlobal((IntPtr) _entityInfos, new IntPtr(_size * sizeof(EntityInfo)));
         }
 
         public ref T GetComponent<T>(in Entity entity) where T : struct, IComponent

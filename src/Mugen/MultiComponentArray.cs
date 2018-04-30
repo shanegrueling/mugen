@@ -1,7 +1,6 @@
 ﻿namespace Mugen
 {
     using System.Collections.Generic;
-    using StructList;
 
     internal class MultiComponentArray<T> : IMultiComponentArray, IComponentArray<T> where T : struct, IComponent
     {
@@ -58,7 +57,6 @@
             get
             {
                 if((_manager?.Version ?? 0) != _version) Reset();
-                if(_currentArray == null) ThrowHelper.ThrowArgumentOutOfRangeException();
 
                 var localIndex = index - _startCurrentArray;
 
