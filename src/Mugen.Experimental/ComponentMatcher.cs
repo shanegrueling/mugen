@@ -14,9 +14,10 @@
         }
 
         public unsafe MatchedBlueprintInfo* MatchedBlueprints;
-        public int MatchedBlueprintArrayLength;
+        private int _matchedBlueprintArrayLength;
         public int AmountOfMatchedBlueprints;
 
+        private readonly AMatcherComponentArray[] _arrays;
         private readonly ComponentMatcherTypes[] _types;
         private int _length;
 
@@ -48,7 +49,16 @@
 
             MatchedBlueprints = (MatchedBlueprintInfo*) Marshal.AllocHGlobal(10 * sizeof(MatchedBlueprintInfo));
             AmountOfMatchedBlueprints = 0;
-            MatchedBlueprintArrayLength = 10;
+            _length = -1;
+            _matchedBlueprintArrayLength = 10;
+
+            _arrays = new AMatcherComponentArray[_types.Length];
+            var type = typeof(MatcherComponentArray<>);
+            for (var i = 0; i < _arrays.Length; ++i)
+            {
+                var genericType = type.MakeGenericType(TypeManager.GetComponentType(_types[i].DataIndex).Type);
+                _arrays[i] = (AMatcherComponentArray) Activator.CreateInstance(genericType, this);
+            }
         }
 
         public bool DoesMatch(Span<ComponentType> componentTypes)
@@ -73,17 +83,15 @@
 
         public unsafe void AddBlueprint(BlueprintData* blueprintData)
         {
-            if (AmountOfMatchedBlueprints >= MatchedBlueprintArrayLength)
+            if (AmountOfMatchedBlueprints >= _matchedBlueprintArrayLength)
             {
-                MatchedBlueprintArrayLength *= 2;
+                _matchedBlueprintArrayLength *= 2;
                 MatchedBlueprints = (MatchedBlueprintInfo*) Marshal.ReAllocHGlobal(
                     (IntPtr) MatchedBlueprints,
-                    (IntPtr) (MatchedBlueprintArrayLength * sizeof(MatchedBlueprintInfo)));
+                    (IntPtr) (_matchedBlueprintArrayLength * sizeof(MatchedBlueprintInfo)));
             }
 
             MatchedBlueprints[AmountOfMatchedBlueprints++] = new MatchedBlueprintInfo { BlueprintData = blueprintData };
-
-            _length += blueprintData->EntityCount;
         }
 
         public IEntityArray GetEntityArray()
@@ -93,6 +101,12 @@
 
         public IComponentArray<T> GetComponentArray<T>() where T : struct, IComponent
         {
+            var index = TypeManager.GetIndex(typeof(T));
+            for (var i = 0; i < _types.Length; ++i)
+            {
+                if (_types[i].DataIndex == index) return (MatcherComponentArray<T>)_arrays[i];
+            }
+
             return null;
         }
 
@@ -104,7 +118,12 @@
 
         public void Invalidate()
         {
+            if (AmountOfMatchedBlueprints == 0) return;
             _length = -1;
+            for (var i = 0; i < _arrays.Length; ++i)
+            {
+                _arrays[i].Invalidate();
+            }
         }
     }
 }
