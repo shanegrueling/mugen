@@ -120,6 +120,9 @@
         {
             if (AmountOfMatchedBlueprints == 0) return;
             _length = -1;
+
+            if (Length == 0) return;
+
             for (var i = 0; i < _arrays.Length; ++i)
             {
                 _arrays[i].Invalidate();

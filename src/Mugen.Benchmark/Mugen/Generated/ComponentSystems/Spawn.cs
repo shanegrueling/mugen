@@ -1,10 +1,10 @@
-﻿namespace Mugen.Benchmark.Generated.ComponentSystems
+﻿namespace Mugen.Benchmark.Mugen.Generated.ComponentSystems
 {
     using Components;
 
     public class Spawn : IUpdateSystem
     {
-        private readonly Benchmark.ComponentSystems.Spawn _system;
+        private readonly Mugen.ComponentSystems.Spawn _system;
         private readonly IComponentMatcher _matcher;
 
         public bool HasUpdateMethod => true;
@@ -12,7 +12,7 @@
 
         public Spawn(World world)
         {
-            _system = new Benchmark.ComponentSystems.Spawn(world.EntityManager)
+            _system = new Mugen.ComponentSystems.Spawn(world.EntityManager)
             {
                 Buffer = world.EntityManager.CreateBuffer()
             };

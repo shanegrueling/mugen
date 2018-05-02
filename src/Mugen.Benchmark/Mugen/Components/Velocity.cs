@@ -1,6 +1,6 @@
-﻿namespace Mugen.Benchmark.Components
+﻿namespace Mugen.Benchmark.Mugen.Components
 {
-    using Math;
+    using global::Mugen.Math;
 
     public struct Velocity : IComponent
     {

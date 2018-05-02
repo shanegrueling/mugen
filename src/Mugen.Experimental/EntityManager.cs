@@ -55,7 +55,7 @@
 
         public ref T GetComponent<T>(Entity entity) where T : struct, IComponent
         {
-            return ref _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex(typeof(T)));
+            return ref _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>());
         }
 
         public Entity CreateEntity(Blueprint blueprint)
@@ -85,7 +85,7 @@
 
         public void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent
         {
-            _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex(typeof(T))) = component;
+            _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>()) = component;
         }
 
         public void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent

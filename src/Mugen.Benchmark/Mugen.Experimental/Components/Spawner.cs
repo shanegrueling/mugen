@@ -1,5 +1,7 @@
-﻿namespace Mugen.Benchmark.Components
+﻿namespace Mugen.Benchmark.Mugen.Experimental.Components
 {
+    using Abstraction;
+
     public struct Spawner : IComponent
     {
         public float SecondsBetweenSpawns;

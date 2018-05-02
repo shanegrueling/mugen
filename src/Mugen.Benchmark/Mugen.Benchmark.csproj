@@ -13,6 +13,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mugen.Experimental\Mugen.Experimental.csproj" />
     <ProjectReference Include="..\Mugen.Math\Mugen.Math.csproj" />
     <ProjectReference Include="..\Mugen\Mugen.csproj" />
   </ItemGroup>

@@ -27,7 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Experimental", "Mugen
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.FoodHunter.NetCore", "Sample\FoodHunter\Sample.FoodHunter.NetCore\Sample.FoodHunter.NetCore.csproj", "{0B5A99B0-3CBB-40CE-A2C4-B1CAE93AB328}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugen.Experimental.Test", "Mugen.Experimental.Test\Mugen.Experimental.Test.csproj", "{3BA58DF1-F748-4ABE-982C-2F92BC878348}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Experimental.Test", "Mugen.Experimental.Test\Mugen.Experimental.Test.csproj", "{3BA58DF1-F748-4ABE-982C-2F92BC878348}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{69B74675-95A5-42EE-9C8F-11ACCC5688FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +81,10 @@ Global
 		{3BA58DF1-F748-4ABE-982C-2F92BC878348}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BA58DF1-F748-4ABE-982C-2F92BC878348}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BA58DF1-F748-4ABE-982C-2F92BC878348}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69B74675-95A5-42EE-9C8F-11ACCC5688FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69B74675-95A5-42EE-9C8F-11ACCC5688FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69B74675-95A5-42EE-9C8F-11ACCC5688FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69B74675-95A5-42EE-9C8F-11ACCC5688FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

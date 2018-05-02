@@ -1,8 +1,7 @@
-﻿namespace Mugen.Benchmark.Generated.ComponentSystems
+﻿namespace Mugen.Benchmark.Mugen.Generated.ComponentSystems
 {
-    using System.Runtime.CompilerServices;
     using Components;
-    
+
     internal class Move : IUpdateSystem
     {
         private readonly Mover _mover;
@@ -16,10 +15,10 @@
 
         public void Update(float deltaTime)
         {
-            Benchmark.ComponentSystems.Move.Update(_mover);
+            Mugen.ComponentSystems.Move.Update(_mover);
         }
 
-        private class Mover : Benchmark.ComponentSystems.Move.IMover
+        private class Mover : Mugen.ComponentSystems.Move.IMover
         {
             private readonly IComponentMatcher _matcher;
             public int Length => _matcher.Length;
@@ -51,7 +50,7 @@
             var v = _matcher.GetComponentArray<Velocity>();
             for(var i = 0; i < l; ++i)
             {
-                Benchmark.ComponentSystems.Move.Update(ref p[i], v[i]);
+                Mugen.ComponentSystems.Move.Update(ref p[i], v[i]);
             }
         }
     }
@@ -69,7 +68,7 @@
 
         public void Update(float deltaTime)
         {
-            Benchmark.ComponentSystems.Move.Update(_matcher.Length, _matcher.GetComponentArray<Position>(), _matcher.GetComponentArray<Velocity>());
+            Mugen.ComponentSystems.Move.Update(_matcher.Length, _matcher.GetComponentArray<Position>(), _matcher.GetComponentArray<Velocity>());
         }
     }
 }

@@ -1,5 +1,6 @@
-﻿namespace Mugen.Benchmark.Components
+﻿namespace Mugen.Benchmark.Mugen.Experimental.Components
 {
+    using Abstraction;
     using Math;
 
     public struct Position : IComponent

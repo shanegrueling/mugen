@@ -10,7 +10,7 @@ namespace Mugen.Abstraction
     {
         private struct StaticTypeLookup<T>
         {
-            public static int TypeIndex;
+            public static int TypeIndex = -1;
         }
 
         public struct ComponentType
@@ -53,6 +53,16 @@ namespace Mugen.Abstraction
         {
             ComponentTypes[_typeCount] = new ComponentType(type);
             return _typeCount++;
+        }
+
+        internal static int GetIndex<T>() where T : struct, IComponent
+        {
+            if (StaticTypeLookup<T>.TypeIndex == -1)
+            {
+                StaticTypeLookup<T>.TypeIndex = FindTypeIndex(typeof(T));
+            }
+
+            return StaticTypeLookup<T>.TypeIndex;
         }
     }
 }

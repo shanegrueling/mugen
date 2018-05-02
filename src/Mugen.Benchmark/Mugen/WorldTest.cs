@@ -1,24 +1,22 @@
-﻿using System;
-
-namespace Test
+﻿namespace Mugen.Benchmark.Mugen
 {
-    using global::Mugen.Experimental;
-    using global::Mugen.Math;
-    using Mugen.Experimental.Components;
-    using Mugen.Experimental.Generated.ComponentSystems;
+    using System;
+    using Components;
+    using Generated.ComponentSystems;
+    using Math;
 
-    class Program
+    public static class WorldTest
     {
-        static void Main(string[] args)
+        public static void MoverBenchmark(int entites, int frames)
         {
-            var world = new World();
+            var world = new World(null);
 
             world.AddSystem(new Move2(world));
             var blueprintMover = world.EntityManager.CreateBlueprint(typeof(Position), typeof(Velocity));
 
             var r = new Random();
 
-            for (var i = 0; i < 1000; ++i)
+            for (var i = 0; i < entites; ++i)
             {
                 var mover = world.EntityManager.CreateEntity(blueprintMover);
                 ref var pos = ref world.EntityManager.GetComponent<Position>(mover);
@@ -27,12 +25,14 @@ namespace Test
                 vel.Value = new int2(r.Next(-5, 5), r.Next(-5, 5));
             }
 
-            for (var i = 0; i < 300; ++i)
+            for (var i = 0; i < frames; ++i)
             {
-                world.Update(0.033f).Wait();
+                var t = world.Update(0.033f);
+                if (!t.IsCompleted)
+                {
+                    t.Wait();
+                }
             }
-
-            Console.ReadLine();
         }
     }
 }

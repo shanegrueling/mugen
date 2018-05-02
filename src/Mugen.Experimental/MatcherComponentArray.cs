@@ -22,26 +22,55 @@
 
         private int _currentStart;
         private int _currentEnd;
+        private bool _isInvalid;
 
         private struct BlueprintInfo
         {
             public int Offset;
         }
 
-        public unsafe MatcherComponentArray(ComponentMatcher componentMatcher)
+        public MatcherComponentArray(ComponentMatcher componentMatcher)
         {
             _componentMatcher = componentMatcher;
-            _typeIndex = TypeManager.GetIndex(typeof(T));
+            _typeIndex = TypeManager.GetIndex<T>();
             _infoForCurrentBlueprint = new BlueprintInfo();
-            _currentChunk = null;
         }
 
-        public override unsafe void Invalidate()
+        public override void Invalidate()
         {
-            _blueprintIndex = -1;
-            _currentStart = 0;
-            _currentChunk = null;
-            NextBlueprint();
+            Set(0);
+        }
+
+        private unsafe void Set(int index)
+        {
+            if (index < _currentStart)
+            {
+                _currentStart = 0;
+                _currentEnd = 0;
+                _currentChunk = null;
+                _blueprintIndex = -1;
+            }
+
+            while (index >= _currentEnd)
+            {
+                _currentStart = _currentEnd;
+                ++_blueprintIndex;
+                if (_componentMatcher.AmountOfMatchedBlueprints <= _blueprintIndex)
+                {
+                    return;
+                }
+                ref var blueprintData = ref *_componentMatcher.MatchedBlueprints[_blueprintIndex].BlueprintData;
+                _currentEnd = _currentStart + blueprintData.EntityCount;
+                _currentChunk = blueprintData.FirstChunk;
+            }
+
+            while (index >= _currentStart + _currentChunk->EntityCount)
+            {
+                _currentStart += _currentChunk->EntityCount;
+                _currentChunk = _currentChunk->NextChunk;
+            }
+
+            _currentEnd = _currentStart + _currentChunk->EntityCount;
         }
 
         private unsafe void NextBlueprint()
@@ -59,7 +88,17 @@
                     break;
                 }
             }
+
+            _currentChunk = null;
             NextChunk();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Reset()
+        {
+            Invalidate();
+            _isInvalid = false;
+            NextBlueprint();
         }
 
         public unsafe ref T this[int index] 
@@ -67,11 +106,9 @@
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (_currentEnd < index)
-                {
-                    NextChunk();
-                }
-                return ref new Span<T>(_currentPointer, 1024)[index];
+                if(index < _currentStart || index >= _currentEnd) Set(index);
+
+                return ref Unsafe.AsRef<T>(Unsafe.Add<T>(_currentPointer, index - _currentStart));
             }
         }
         
@@ -89,20 +126,17 @@
                 NextBlueprint();
                 return;
             }
-            
-            ref var blueprintData = ref *_componentMatcher.MatchedBlueprints[_blueprintIndex].BlueprintData;
 
             _currentStart += _currentChunk->EntityCount;
-            _currentChunk = blueprintData.FirstChunk;
-            _currentPointer = _currentChunk->Buffer + _infoForCurrentBlueprint.Offset;
+            _currentChunk = _currentChunk->NextChunk;
+            _currentPointer = (_currentChunk->Buffer + _infoForCurrentBlueprint.Offset);
             _currentEnd = _currentStart + _currentChunk->EntityCount;
         }
 
         private unsafe void FirstChunk(ref BlueprintData blueprintData)
         {
-            _currentStart = 0;
             _currentChunk = blueprintData.FirstChunk;
-            _currentPointer = _currentChunk->Buffer + _infoForCurrentBlueprint.Offset;
+            _currentPointer = (_currentChunk->Buffer + _infoForCurrentBlueprint.Offset);
             _currentEnd = _currentStart + _currentChunk->EntityCount;
         }
     }

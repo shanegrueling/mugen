@@ -2,9 +2,9 @@
 {
     using System;
     using BenchmarkDotNet.Attributes;
-    using Components;
-    using Generated.ComponentSystems;
     using Math;
+    using Mugen.Components;
+    using Mugen.Generated.ComponentSystems;
 
     [MemoryDiagnoser]
     public class MugenBenchmark

@@ -1,7 +1,7 @@
-﻿namespace Mugen.Benchmark.ComponentSystems
+﻿namespace Mugen.Benchmark.Mugen.ComponentSystems
 {
     using Components;
-    using Math;
+    using global::Mugen.Math;
 
     internal class Spawn
     {

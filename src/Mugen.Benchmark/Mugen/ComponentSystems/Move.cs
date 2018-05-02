@@ -1,4 +1,4 @@
-﻿namespace Mugen.Benchmark.ComponentSystems
+﻿namespace Mugen.Benchmark.Mugen.ComponentSystems
 {
     using Components;
 
