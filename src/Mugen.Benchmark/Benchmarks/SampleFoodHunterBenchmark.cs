@@ -1,19 +1,21 @@
-﻿using System;
-
-namespace Sample.FoodHunter.NetCore
+﻿namespace Mugen.Benchmark.Benchmarks
 {
-    using System.Diagnostics;
+    using System;
     using System.Threading.Tasks;
-    using Logic.Components;
-    using Logic.Generated.ComponentSystems;
-    using Mugen.Experimental;
-    using Mugen.Math;
-
-    internal static class Program
+    using BenchmarkDotNet.Attributes;
+    using Experimental;
+    using Math;
+    using Sample.FoodHunter.Logic.Components;
+    using Sample.FoodHunter.Logic.Generated.ComponentSystems;
+    
+    [MemoryDiagnoser]
+    public class SampleFoodHunterBenchmark
     {
-        private static bool _shouldRun;
+        [Params(0, 10, 100, 1000)]
+        public int Frames { get;set; }
 
-        private static async Task Main(string[] args)
+        [Benchmark]
+        public async Task CreateAndRunWorld()
         {
             using (var world = new World())
             {
@@ -25,23 +27,12 @@ namespace Sample.FoodHunter.NetCore
 
                 FillWorld(world);
 
-                _shouldRun = true;
-                Console.CancelKeyPress += Exit;
-
-                var frames = 0;
-                var s = Stopwatch.StartNew();
-                while (_shouldRun)
+                
+                for(var i = 0; i < Frames; ++i)
                 {
                     await world.Update(0.033f);
-                    ++frames;
                 }
-                s.Stop();
-
-                Console.WriteLine($"Frames: {frames}");
-                Console.WriteLine($"Elapsed Time: {s.Elapsed}");
-                Console.WriteLine($"Avg. Time per Frame: {frames/s.ElapsedMilliseconds}");
             }
-            Console.ReadLine();
         }
 
         private static void FillWorld(World world)
@@ -61,12 +52,6 @@ namespace Sample.FoodHunter.NetCore
                 var eater = world.EntityManager.CreateEntity(eaterBlueprint);
                 world.EntityManager.ReplaceComponent(eater, new Position { Value = new float2(r.Next(0, 1000), r.Next(0, 1000))});
             }
-        }
-
-        private static void Exit(object sender, ConsoleCancelEventArgs e)
-        {
-            Console.WriteLine("Exit!");
-            _shouldRun = false;
         }
     }
 }

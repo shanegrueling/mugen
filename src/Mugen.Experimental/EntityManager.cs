@@ -13,12 +13,15 @@
 
         private readonly List<ComponentMatcher> _componentMatchers;
 
+        private Dictionary<Type, object> _dictionary;
+
         public EntityManager()
         {
             _blueprintManager = new BlueprintManager();
             _entityDataManager = new EntityDataManager(_blueprintManager);
             _comparer = new ComponentTypeComparer();
             _componentMatchers = new List<ComponentMatcher>();
+            _dictionary = new Dictionary<Type, object>();
         }
 
         public IComponentMatcher GetMatcher(params ComponentMatcherTypes[] matcherTypes)
@@ -83,9 +86,24 @@
             _entityDataManager.AddComponent(entity, component);
         }
 
+        public unsafe void AddComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
+        {
+            
+        }
+
+        public unsafe void SetComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
+        {
+            _entityDataManager.SetComponent(entity, componentTypeIndex, pointer);
+        }
+
         public void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent
         {
             _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>()) = component;
+        }
+
+        internal void RemoveComponent(Entity entity, int componentTypeIndex)
+        {
+            throw new NotImplementedException();
         }
 
         public void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent
@@ -100,16 +118,28 @@
 
         public void DeleteEntity(in Entity entity)
         {
-            throw new System.NotImplementedException();
+            InvalidateMatchers();
+
+            _entityDataManager.DeleteEntity(entity);
         }
 
         public IEntityCommandBuffer<TSystem> CreateCommandBuffer<TSystem>()
         {
-            return null;
+            if(_dictionary.TryGetValue(typeof(TSystem), out var commandBuffer))
+            {
+                return (IEntityCommandBuffer<TSystem>)commandBuffer;
+            }
+            _dictionary[typeof(TSystem)] = new EntityCommandBuffer<TSystem>(this);
+            return (IEntityCommandBuffer<TSystem>)_dictionary[typeof(TSystem)];
         }
 
         public IEntityCommandBuffer<TSystem> GetCommandBuffer<TSystem>()
         {
+            if(_dictionary.TryGetValue(typeof(TSystem), out var commandBuffer))
+            {
+                return (IEntityCommandBuffer<TSystem>)commandBuffer;
+            }
+
             return null;
         }
 

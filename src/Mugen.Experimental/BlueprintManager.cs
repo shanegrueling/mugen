@@ -9,33 +9,28 @@
     internal unsafe class BlueprintManager : IDisposable
     {
         private BlueprintData* _lastBlueprintData;
-
-        private BlueprintComponentType* _precachedBlueprintComponentTypeArray;
-
-        private List<ComponentMatcher> _matchers;
+        
+        private readonly List<ComponentMatcher> _matchers;
 
         public BlueprintManager()
         {
-            _precachedBlueprintComponentTypeArray = (BlueprintComponentType*)Marshal.AllocHGlobal(sizeof(BlueprintComponentType) * 1024);
             _lastBlueprintData = null;
             _matchers = new List<ComponentMatcher>();
         }
 
-        public Blueprint GetOrCreateBlueprint(ComponentType[] types)
+        public Blueprint GetOrCreateBlueprint(Span<ComponentType> types)
         {
-            fixed (ComponentType* type = types)
+            var blueprintComponentTypeArray = stackalloc BlueprintComponentType[types.Length];
+            for (var i = 0; i < types.Length; ++i)
             {
-                for (var i = 0; i < types.Length; ++i)
-                {
-                    _precachedBlueprintComponentTypeArray[i] = new BlueprintComponentType(type[i]);
-                }
+                blueprintComponentTypeArray[i] = new BlueprintComponentType(types[i]);
             }
 
-            var blueprintDataPointer = FindExistingBlueprint(_precachedBlueprintComponentTypeArray, types.Length);
+            var blueprintDataPointer = FindExistingBlueprint(blueprintComponentTypeArray, types.Length);
 
             if(blueprintDataPointer != null) return new Blueprint(blueprintDataPointer);
 
-            return new Blueprint(CreateBlueprintData(_precachedBlueprintComponentTypeArray, types.Length));
+            return new Blueprint(CreateBlueprintData(blueprintComponentTypeArray, types.Length));
         }
 
         private BlueprintData* CreateBlueprintData(BlueprintComponentType* blueprintComponentTypeArray, int count)
@@ -162,9 +157,6 @@
                 Marshal.FreeHGlobal((IntPtr)_lastBlueprintData);
                 _lastBlueprintData = next;
             }
-
-            Marshal.FreeHGlobal((IntPtr)_precachedBlueprintComponentTypeArray);
-            _precachedBlueprintComponentTypeArray = null;
         }
 
         public void CheckBlueprintsForMatcher(ComponentMatcher matcher)

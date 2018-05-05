@@ -3,19 +3,12 @@
     using System.Runtime.CompilerServices;
     using Abstraction;
 
-    internal abstract class AMatcherComponentArray
-    {
-        public abstract void Invalidate();
-    }
-
-    internal sealed class MatcherComponentArray<T> : AMatcherComponentArray, IComponentArray<T> where T : struct, IComponent
+    internal sealed class EntityArray : IEntityArray
     {
         private readonly ComponentMatcher _componentMatcher;
         private int _blueprintIndex;
 
-
-        private BlueprintInfo _infoForCurrentBlueprint;
-        private readonly int _typeIndex;
+        private readonly BlueprintInfo _infoForCurrentBlueprint;
 
         private int _chunkEnd;
 
@@ -32,19 +25,19 @@
             public int Offset;
         }
 
-        public unsafe MatcherComponentArray(ComponentMatcher componentMatcher)
+        public unsafe EntityArray(ComponentMatcher componentMatcher)
         {
             _componentMatcher = componentMatcher;
-            _typeIndex = TypeManager.GetIndex<T>();
-            _infoForCurrentBlueprint = new BlueprintInfo();
-            _size = Unsafe.SizeOf<T>();
+
+            _infoForCurrentBlueprint = new BlueprintInfo {Offset = 0};
+            _size = Unsafe.SizeOf<Entity>();
             _currentStart = 0;
             _currentEnd = 0;
             _currentChunk = null;
             _blueprintIndex = -1;
         }
 
-        public override unsafe void Invalidate()
+        public unsafe void Invalidate()
         {
             _currentStart = 0;
             _currentEnd = 0;
@@ -67,13 +60,6 @@
                 _currentStart = _currentEnd;
                 ++_blueprintIndex;
                 ref var blueprintData = ref *_componentMatcher.MatchedBlueprints[_blueprintIndex].BlueprintData;
-                for (var i = 0; i < blueprintData.ComponentTypesCount; ++i)
-                {
-                    if (blueprintData.ComponentTypes[i].TypeIndex == _typeIndex)
-                    {
-                        _infoForCurrentBlueprint.Offset = blueprintData.Offsets[i];
-                    }
-                }
                 _currentEnd = _currentStart + blueprintData.EntityCount;
                 _currentChunk = blueprintData.FirstChunk;
                 _chunkEnd = _currentStart + _currentChunk->EntityCount;
@@ -89,14 +75,14 @@
             }
         }
 
-        public unsafe ref T this[int index] 
+        public unsafe ref Entity this[int index] 
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if(index < _currentStart || index >= _chunkEnd) Set(index);
 
-                return ref Unsafe.AsRef<T>((byte*)_currentPointer + _size * (index - _currentStart));
+                return ref Unsafe.AsRef<Entity>((byte*)_currentPointer + _size * (index - _currentStart));
             }
         }
     }

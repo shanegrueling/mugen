@@ -1,5 +1,6 @@
 ﻿namespace Sample.FoodHunter.Logic.ComponentSystems
 {
+    using System;
     using Components;
     using Mugen.Abstraction;
     using Mugen.Abstraction.CommandBuffers;
@@ -29,6 +30,7 @@
                     score.Value += food.PointValues[i].Value;
 
                     _buffer.DeleteEntity(food.Entities[i]);
+                    break;
                 }
             }
         }

@@ -34,7 +34,7 @@
         }
 
         public static float Distance(float2 f1, float2 f2) =>
-            (float)System.Math.Sqrt(System.Math.Pow(f2.X - f1.Y, 2) + System.Math.Pow(f2.Y - f1.Y, 2));
+            (float)System.Math.Sqrt(System.Math.Pow(f2.X - f1.X, 2) + System.Math.Pow(f2.Y - f1.Y, 2));
 
         public static float2 Normalize(ref float2 f)
         {

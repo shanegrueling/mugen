@@ -16,13 +16,13 @@
                 var closestDistance = float.MaxValue;
                 for (var j = 0; j < food.Length; ++j)
                 {
-                    ref var foodPosition = ref food.Positions[i];
+                    ref var foodPosition = ref food.Positions[j];
                     var distance = float2.Distance(eaterPosition.Value, foodPosition.Value);
                     if (closestDistance <= distance) return;
 
                     closestDistance = distance;
 
-                    eaterVelocity.Value = float2.Normalize(eaterPosition.Value - foodPosition.Value);
+                    eaterVelocity.Value = float2.Normalize(foodPosition.Value - eaterPosition.Value) * 20;
                 }
             }
         }

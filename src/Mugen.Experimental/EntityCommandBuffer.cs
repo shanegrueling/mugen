@@ -1,6 +1,8 @@
 ﻿namespace Mugen.Experimental
 {
     using System;
+    using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
     using Abstraction;
     using Abstraction.CommandBuffer;
     using Abstraction.CommandBuffers;
@@ -20,54 +22,248 @@
         private unsafe CommandChunk* _first;
         private unsafe CommandChunk* _last;
 
-        public EntityCommandBuffer(EntityManager manager)
+        public unsafe EntityCommandBuffer(EntityManager manager)
         {
             _manager = manager;
+            _first = null;
+            _last = null;
+        }
+
+        private unsafe ref T GetPointer<T>(int size)
+        {
+            var commandSize = Unsafe.SizeOf<T>();
+            if(_last == null)
+            {
+                _first = _last = (CommandChunk*)Marshal.AllocHGlobal(sizeof(CommandChunk) + 1024);
+                _first->Size = 1024;
+                _first->Used = 0;
+                _first->Previous = null;
+                _first->Next = null;
+            }
+
+            if(_last->Size < _last->Used + commandSize + size)
+            {
+                var next = (CommandChunk*)Marshal.AllocHGlobal(sizeof(CommandChunk) + 1024);
+                next->Size = 1024;
+                next->Used = 0;
+                _last->Next = next;
+                next->Previous = _last;
+                _last = next;
+                _last->Next = null;
+            }
+
+            var used = _last->Used;
+            _last->Used += commandSize + size;
+
+            return ref Unsafe.AsRef<T>((byte*)_last + sizeof(CommandChunk) + used);
         }
 
         public void CreateEntity(Blueprint blueprint)
         {
-            throw new NotImplementedException();
+            ref var createCommand = ref GetPointer<CreateCommand>(0);
+
+            createCommand.Header.CommandType = Commands.Create;
+            createCommand.Header.Size = Unsafe.SizeOf<CreateCommand>();
+            createCommand.Blueprint = blueprint;
         }
 
-        public void CreateEntity()
+        public unsafe void CreateEntity()
         {
-            throw new NotImplementedException();
+            CreateEntity(new Blueprint(null));
         }
 
-        public void AddComponent<T>(in Entity entity)
+        public unsafe void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent
         {
-            throw new NotImplementedException();
+            var componentSize = Unsafe.SizeOf<T>();
+
+            ref var addCommand = ref GetPointer<AddCommand>(componentSize);
+
+            addCommand.Header.CommandType = Commands.Add;
+            addCommand.Header.Size = sizeof(AddCommand) + componentSize;
+            addCommand.Entity = entity;
+            addCommand.ComponentSize = componentSize;
+            addCommand.ComponentTypeIndex = TypeManager.GetIndex<T>();
+
+            Unsafe.AsRef<T>((byte*)Unsafe.AsPointer(ref addCommand) + sizeof(AddCommand)) = component;
         }
 
-        public void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public unsafe void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent
         {
-            throw new NotImplementedException();
+            var componentSize = Unsafe.SizeOf<T>();
+
+            ref var replaceCommand = ref GetPointer<ReplaceCommand>(componentSize);
+
+            replaceCommand.Header.CommandType = Commands.Replace;
+            replaceCommand.Header.Size = sizeof(ReplaceCommand) + componentSize;
+            replaceCommand.Entity = entity;
+            replaceCommand.ComponentSize = componentSize;
+            replaceCommand.ComponentTypeIndex = TypeManager.GetIndex<T>();
+
+            Unsafe.AsRef<T>((byte*)Unsafe.AsPointer(ref replaceCommand) + sizeof(ReplaceCommand)) = component;
         }
 
-        public void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public unsafe void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent
         {
-            throw new NotImplementedException();
+            var componentSize = Unsafe.SizeOf<T>();
+
+            ref var setCommand = ref GetPointer<SetNewCommand>(componentSize);
+
+            setCommand.Header.CommandType = Commands.Set;
+            setCommand.Header.Size = sizeof(SetNewCommand) + componentSize;
+            setCommand.Entity = entity;
+            setCommand.ComponentSize = componentSize;
+            setCommand.ComponentTypeIndex = TypeManager.GetIndex<T>();
+
+            Unsafe.AsRef<T>((byte*)Unsafe.AsPointer(ref setCommand) + sizeof(SetNewCommand)) = component;
         }
 
-        public void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public unsafe void RemoveComponent<T>(in Entity entity) where T : struct, IComponent
         {
-            throw new NotImplementedException();
+            ref var removeCommand = ref GetPointer<RemoveCommand>(0);
+
+            removeCommand.Header.CommandType = Commands.Remove;
+            removeCommand.Header.Size = sizeof(RemoveCommand);
+            removeCommand.Entity = entity;
+            removeCommand.ComponentTypeIndex = TypeManager.GetIndex<T>();
         }
 
-        public void RemoveComponent<T>(in Entity entity) where T : struct, IComponent
+        public unsafe void DeleteEntity(in Entity entity)
         {
-            throw new NotImplementedException();
+            ref var removeCommand = ref GetPointer<DeleteCommand>(0);
+
+            removeCommand.Header.CommandType = Commands.Delete;
+            removeCommand.Header.Size = sizeof(DeleteCommand);
+            removeCommand.Entity = entity;
         }
 
-        public void DeleteEntity(in Entity entity)
+        public unsafe void Playback()
         {
-            throw new NotImplementedException();
+            var sizeOfChunk = sizeof(CommandChunk);
+
+            var chunk = _first;
+            _last = _first = null;
+            var lastEntity = default(Entity);
+
+            while(chunk != null)
+            {
+                var offset = 0;
+                var bufferPointer = (byte*)chunk + sizeOfChunk;
+                while(offset < chunk->Used)
+                {
+                    var commandPointer = (CommandHeader*)(bufferPointer + offset);
+                    switch(commandPointer->CommandType)
+                    {
+                        case Commands.Create:
+                            var createCommand = (CreateCommand*)commandPointer;
+                            lastEntity = createCommand->Blueprint.BlueprintData != null ? _manager.CreateEntity(createCommand->Blueprint) : _manager.CreateEntity();
+                            break;
+                        case Commands.Add:
+                            var addCommand = (AddCommand*)commandPointer;
+                            _manager.AddComponent(
+                                addCommand->Entity.DataIndex == -1 ? lastEntity : addCommand->Entity,
+                                addCommand->ComponentTypeIndex, 
+                                (byte*)addCommand + sizeof(AddCommand)
+                            );
+                            break;
+                        case Commands.Replace:
+                            var replaceCommand = (ReplaceCommand*)commandPointer;
+                            _manager.AddComponent(
+                                replaceCommand->Entity.DataIndex == -1 ? lastEntity : replaceCommand->Entity,
+                                replaceCommand->ComponentTypeIndex, 
+                                (byte*)replaceCommand + sizeof(ReplaceCommand)
+                            );
+                            break;
+                        case Commands.Set:
+                            var setCommand = (SetNewCommand*)commandPointer;
+                            _manager.SetComponent(
+                                setCommand->Entity.DataIndex == -1 ? lastEntity : setCommand->Entity,
+                                setCommand->ComponentTypeIndex, 
+                                (byte*)setCommand + sizeof(SetNewCommand)
+                            );
+                            break;
+                        case Commands.Remove:
+                            var removeCommand = (RemoveCommand*)commandPointer;
+                            _manager.RemoveComponent(removeCommand->Entity, removeCommand->ComponentTypeIndex);
+                            break;
+                        case Commands.Delete:
+                            var deleteCommand = (DeleteCommand*)commandPointer;
+                            _manager.DeleteEntity(deleteCommand->Entity);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    offset += commandPointer->Size;
+                }
+
+                var currentPointer = (IntPtr) chunk;
+                chunk = chunk->Next;
+                Marshal.FreeHGlobal(currentPointer);
+            }
         }
 
-        public void Playback()
+        private enum Commands
         {
-            throw new NotImplementedException();
+            Create,
+            Add,
+            Replace,
+            Set,
+            Remove,
+            Delete
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CommandHeader
+        {
+            public Commands CommandType;
+            public int Size;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CreateCommand
+        {
+            public CommandHeader Header;
+            public Blueprint Blueprint;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SetNewCommand
+        {
+            public CommandHeader Header;
+            public Entity Entity;
+            public int ComponentTypeIndex;
+            public int ComponentSize;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct AddCommand
+        {
+            public CommandHeader Header;
+            public Entity Entity;
+            public int ComponentTypeIndex;
+            public int ComponentSize;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ReplaceCommand
+        {
+            public CommandHeader Header;
+            public Entity Entity;
+            public int ComponentTypeIndex;
+            public int ComponentSize;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RemoveCommand
+        {
+            public CommandHeader Header;
+            public Entity Entity;
+            public int ComponentTypeIndex;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DeleteCommand
+        {
+            public CommandHeader Header;
+            public Entity Entity;
         }
     }
 
@@ -82,17 +278,17 @@
 
         public INewEntityCommandBuffer<T> CreateEntity(Blueprint blueprint)
         {
-            return new NewEntityCommandBuffer(this);
+            return new NewEntityCommandBuffer(this, blueprint);
         }
 
         public INewEntityCommandBuffer<T> CreateEntity()
         {
-            return new NewEntityCommandBuffer(this);
+            return new NewEntityCommandBuffer(this, default);
         }
 
-        public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity)
+        public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity) where T1 : struct, IComponent
         {
-            _commandBuffer.AddComponent<T1>(entity);
+            _commandBuffer.AddComponent<T1>(entity, default);
             return this;
         }
 
@@ -136,14 +332,17 @@
         {
             private readonly EntityCommandBuffer<T> _entityCommandBuffer;
 
-            public NewEntityCommandBuffer(EntityCommandBuffer<T> entityCommandBuffer)
+            public NewEntityCommandBuffer(EntityCommandBuffer<T> entityCommandBuffer, Blueprint blueprint)
             {
                 _entityCommandBuffer = entityCommandBuffer;
+                
+                _entityCommandBuffer._commandBuffer.CreateEntity(blueprint);
             }
 
             public INewEntityCommandBuffer<T> SetComponent<T1>(in T1 component) where T1 : struct, IComponent
             {
-                throw new NotImplementedException();
+                _entityCommandBuffer.SetComponent(new Entity(-1, -1), component);
+                return this;
             }
 
             public IEntityCommandBuffer<T> Finish()

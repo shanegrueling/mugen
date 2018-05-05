@@ -17,6 +17,7 @@
         private int _matchedBlueprintArrayLength;
         public int AmountOfMatchedBlueprints;
 
+        private readonly EntityArray _entityArray;
         private readonly AMatcherComponentArray[] _arrays;
         private readonly ComponentMatcherTypes[] _types;
         private int _length;
@@ -52,11 +53,14 @@
             _length = -1;
             _matchedBlueprintArrayLength = 10;
 
+            _entityArray = new EntityArray(this);
+
             _arrays = new AMatcherComponentArray[_types.Length];
             var type = typeof(MatcherComponentArray<>);
             for (var i = 0; i < _arrays.Length; ++i)
             {
                 var genericType = type.MakeGenericType(TypeManager.GetComponentType(_types[i].DataIndex).Type);
+
                 _arrays[i] = (AMatcherComponentArray) Activator.CreateInstance(genericType, this);
             }
         }
@@ -95,10 +99,7 @@
             _length = -1;
         }
 
-        public IEntityArray GetEntityArray()
-        {
-            return null;
-        }
+        public IEntityArray GetEntityArray() => _entityArray;
 
         public IComponentArray<T> GetComponentArray<T>() where T : struct, IComponent
         {
@@ -121,6 +122,8 @@
         {
             if (AmountOfMatchedBlueprints == 0) return;
             _length = -1;
+
+            _entityArray.Invalidate();
 
             for (var i = 0; i < _arrays.Length; ++i)
             {

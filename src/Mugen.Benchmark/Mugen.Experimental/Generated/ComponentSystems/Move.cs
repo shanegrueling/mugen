@@ -14,8 +14,6 @@
             _mover = new Mover(world.EntityManager.GetMatcher(typeof(Position), typeof(Velocity)));
         }
 
-        public bool HasUpdateMethod => true;
-
         public override void Update(float deltaTime)
         {
             Experimental.ComponentSystems.Move.Update(_mover);
@@ -45,8 +43,6 @@
             _matcher = world.EntityManager.GetMatcher(typeof(Position), typeof(Velocity));
         }
 
-        public bool HasUpdateMethod => true;
-
         public override void Update(float deltaTime)
         {
             var l = _matcher.Length;
@@ -67,8 +63,6 @@
         {
             _matcher = world.EntityManager.GetMatcher(typeof(Position), typeof(Velocity));
         }
-
-        public bool HasUpdateMethod => true;
 
         public override void Update(float deltaTime)
         {

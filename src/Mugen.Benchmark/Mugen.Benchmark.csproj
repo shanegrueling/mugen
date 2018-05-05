@@ -25,6 +25,7 @@
     <ProjectReference Include="..\Mugen.Experimental\Mugen.Experimental.csproj" />
     <ProjectReference Include="..\Mugen.Math\Mugen.Math.csproj" />
     <ProjectReference Include="..\Mugen\Mugen.csproj" />
+    <ProjectReference Include="..\Sample\FoodHunter\Logic\Sample.FoodHunter.Logic.csproj" />
   </ItemGroup>
 
 </Project>
