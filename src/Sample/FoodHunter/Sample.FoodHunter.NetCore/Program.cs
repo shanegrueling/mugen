@@ -17,7 +17,6 @@ namespace Sample.FoodHunter.NetCore
         {
             using (var world = new World())
             {
-
                 world.AddSystem(new SpawnFood(world));
                 world.AddSystem(new SearchForFood(world));
                 world.AddSystem(new ApplyVelocity(world));
@@ -38,10 +37,13 @@ namespace Sample.FoodHunter.NetCore
                     ++frames;
                 }
 
-                Console.WriteLine($"Avg. Time per Frame: {frames/s.ElapsedMilliseconds}");
+                Console.WriteLine($"Avg. Time per Frame: {(float)frames/s.ElapsedMilliseconds}");
                 Console.WriteLine($"Frames: {frames}");
                 Console.WriteLine($"Elapsed Time: {s.Elapsed}");
+                Console.WriteLine($"Elapsed Miliseconds: {s.ElapsedMilliseconds}");
             }
+
+            Console.ReadLine();
         }
 
         private static void FillWorld(World world)
@@ -67,6 +69,7 @@ namespace Sample.FoodHunter.NetCore
         {
             Console.WriteLine("Exit!");
             _shouldRun = false;
+            e.Cancel = true;
         }
     }
 }
