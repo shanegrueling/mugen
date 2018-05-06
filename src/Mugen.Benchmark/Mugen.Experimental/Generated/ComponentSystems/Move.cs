@@ -55,21 +55,49 @@
         }
     }
 
+    public class Move22 : AUpdateSystem
+    {
+        private readonly IComponentMatcher _matcher;
+        private readonly IComponentArray<Position> _p;
+        private readonly IComponentArray<Velocity> _v;
+
+        public Move22(World world)
+        {
+            _matcher = world.EntityManager.GetMatcher(typeof(Position), typeof(Velocity));
+            _p = _matcher.GetComponentArray<Position>();
+            _v = _matcher.GetComponentArray<Velocity>();
+        }
+
+        public override void Update(float deltaTime)
+        {
+            var l = _matcher.Length;
+            
+            for (var i = 0; i < l; ++i)
+            {
+                Experimental.ComponentSystems.Move.Update(ref _p[i], _v[i]);
+            }
+        }
+    }
+
     internal class Move3 : AUpdateSystem
     {
         private readonly IComponentMatcher _matcher;
+        private readonly IComponentArray<Position> _p;
+        private readonly IComponentArray<Velocity> _v;
 
         public Move3(World world)
         {
             _matcher = world.EntityManager.GetMatcher(typeof(Position), typeof(Velocity));
+            _p = _matcher.GetComponentArray<Position>();
+            _v = _matcher.GetComponentArray<Velocity>();
         }
 
         public override void Update(float deltaTime)
         {
             Experimental.ComponentSystems.Move.Update(
                 _matcher.Length,
-                _matcher.GetComponentArray<Position>(),
-                _matcher.GetComponentArray<Velocity>());
+                _p,
+                _v);
         }
     }
 }

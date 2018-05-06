@@ -34,12 +34,14 @@
             private readonly IComponentMatcher _matcher;
 
             public int Length => _matcher.Length;
-            public IComponentArray<Position> Positions => _matcher.GetComponentArray<Position>();
-            public IComponentArray<Score> Scores => _matcher.GetComponentArray<Score>();
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<Score> Scores { get; }
 
             public Eater(IComponentMatcher matcher)
             {
                 _matcher = matcher;
+                Positions = _matcher.GetComponentArray<Position>();
+                Scores = _matcher.GetComponentArray<Score>();
             }
         }
 
@@ -48,13 +50,16 @@
             private readonly IComponentMatcher _matcher;
 
             public int Length => _matcher.Length;
-            public IComponentArray<Position> Positions => _matcher.GetComponentArray<Position>();
-            public IComponentArray<PointValue> PointValues => _matcher.GetComponentArray<PointValue>();
-            public IEntityArray Entities => _matcher.GetEntityArray();
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<PointValue> PointValues { get; }
+            public IEntityArray Entities { get; }
 
             public Food(IComponentMatcher matcher)
             {
                 _matcher = matcher;
+                Positions = _matcher.GetComponentArray<Position>();
+                PointValues = _matcher.GetComponentArray<PointValue>();
+                Entities = _matcher.GetEntityArray();
             }
         }
     }

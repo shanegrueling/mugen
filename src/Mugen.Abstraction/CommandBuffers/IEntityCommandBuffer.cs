@@ -4,7 +4,7 @@
 
     internal interface IEntityCommandBuffer
     {
-        void CreateEntity(Blueprint blueprint);
+        void CreateEntity(in Blueprint blueprint);
         void CreateEntity();
 
         void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent;
@@ -22,7 +22,7 @@
 
     public interface IEntityCommandBuffer<TSystem>
     {
-        INewEntityCommandBuffer<TSystem> CreateEntity(Blueprint blueprint);
+        INewEntityCommandBuffer<TSystem> CreateEntity(in Blueprint blueprint);
         INewEntityCommandBuffer<TSystem> CreateEntity();
 
         IEntityCommandBuffer<TSystem> AddComponent<T>(in Entity entity) where T : struct, IComponent;

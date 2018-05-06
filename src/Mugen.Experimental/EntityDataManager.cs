@@ -301,14 +301,12 @@
         public void DeleteEntity(in Entity entity)
         {
             ref var data = ref _entityData[entity.DataIndex];
-            if (data.Chunk == null)
-            {
-                var a = 0;
-            }
             RemoveEntity(data.Chunk, data.IndexInChunk);
             data.Chunk = null;
             data.IndexInChunk = -1;
             ++data.Version;
+            
+            _freeEntityDataSlots.Enqueue(entity.DataIndex);
         }
     }
 }

@@ -25,5 +25,11 @@
         {
             Benchmark.Mugen.Experimental.WorldTest.MoverBenchmark(Entites, Frames);
         }
+
+        [Benchmark]
+        public void Experimental2()
+        {
+            Benchmark.Mugen.Experimental.WorldTest.MoverBenchmark2(Entites, Frames);
+        }
     }
 }

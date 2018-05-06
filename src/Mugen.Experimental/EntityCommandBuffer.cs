@@ -58,7 +58,7 @@
             return ref Unsafe.AsRef<T>((byte*)_last + sizeof(CommandChunk) + used);
         }
 
-        public void CreateEntity(Blueprint blueprint)
+        public void CreateEntity(in Blueprint blueprint)
         {
             ref var createCommand = ref GetPointer<CreateCommand>(0);
 
@@ -267,7 +267,7 @@
         }
     }
 
-    internal sealed class EntityCommandBuffer<T> : IEntityCommandBuffer<T>
+    internal sealed class EntityCommandBuffer<T> : IEntityCommandBuffer<T>, INewEntityCommandBuffer<T>
     {
         private readonly EntityCommandBuffer _commandBuffer;
 
@@ -276,14 +276,16 @@
             _commandBuffer = new EntityCommandBuffer(manager);
         }
 
-        public INewEntityCommandBuffer<T> CreateEntity(Blueprint blueprint)
+        public INewEntityCommandBuffer<T> CreateEntity(in Blueprint blueprint)
         {
-            return new NewEntityCommandBuffer(this, blueprint);
+            _commandBuffer.CreateEntity(blueprint);
+            return this;
         }
 
-        public INewEntityCommandBuffer<T> CreateEntity()
+        public unsafe INewEntityCommandBuffer<T> CreateEntity()
         {
-            return new NewEntityCommandBuffer(this, default);
+            _commandBuffer.CreateEntity(new Blueprint(null));
+            return this;
         }
 
         public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity) where T1 : struct, IComponent
@@ -328,27 +330,15 @@
             _commandBuffer.Playback();
         }
 
-        private sealed class NewEntityCommandBuffer : INewEntityCommandBuffer<T>
+        public INewEntityCommandBuffer<T> SetComponent<T1>(in T1 component) where T1 : struct, IComponent
         {
-            private readonly EntityCommandBuffer<T> _entityCommandBuffer;
+            _commandBuffer.SetComponent(new Entity(-1, -1), component);
+            return this;
+        }
 
-            public NewEntityCommandBuffer(EntityCommandBuffer<T> entityCommandBuffer, Blueprint blueprint)
-            {
-                _entityCommandBuffer = entityCommandBuffer;
-                
-                _entityCommandBuffer._commandBuffer.CreateEntity(blueprint);
-            }
-
-            public INewEntityCommandBuffer<T> SetComponent<T1>(in T1 component) where T1 : struct, IComponent
-            {
-                _entityCommandBuffer.SetComponent(new Entity(-1, -1), component);
-                return this;
-            }
-
-            public IEntityCommandBuffer<T> Finish()
-            {
-                return _entityCommandBuffer;
-            }
+        public IEntityCommandBuffer<T> Finish()
+        {
+            return this;
         }
     }
 }

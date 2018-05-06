@@ -34,12 +34,15 @@
             private readonly IComponentMatcher _matcher;
             
             public int Length => _matcher.Length;
-            public IComponentArray<Position> Positions => _matcher.GetComponentArray<Position>();
-            public IComponentArray<PointValue> PointValues => _matcher.GetComponentArray<PointValue>();
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<PointValue> PointValues { get; }
 
             public Food(IComponentMatcher matcher)
             {
                 _matcher = matcher;
+
+                Positions = _matcher.GetComponentArray<Position>();
+                PointValues = _matcher.GetComponentArray<PointValue>();
             }
         }
 
@@ -48,11 +51,13 @@
             private readonly IComponentMatcher _matcher;
             
             public int Length => _matcher.Length;
-            public IComponentArray<Size> Sizes => _matcher.GetComponentArray<Size>();
+            public IComponentArray<Size> Sizes { get; }
 
             public GameParameter(IComponentMatcher matcher)
             {
                 _matcher = matcher;
+
+                Sizes = _matcher.GetComponentArray<Size>();
             }
         }
     }

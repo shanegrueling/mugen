@@ -13,7 +13,7 @@
 
         private readonly List<ComponentMatcher> _componentMatchers;
 
-        private Dictionary<Type, object> _dictionary;
+        private readonly Dictionary<Type, object> _dictionary;
 
         public EntityManager()
         {
@@ -153,6 +153,7 @@
 
         public void Dispose()
         {
+            _entityDataManager.Dispose();
             _blueprintManager.Dispose();
             foreach (var matcher in _componentMatchers)
             {

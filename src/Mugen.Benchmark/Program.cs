@@ -28,7 +28,7 @@
 
         static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<SampleFoodHunterBenchmark>();
+            var summary = BenchmarkRunner.Run<MugenVsExperimentelBenchmark>();
         }
     }
 }

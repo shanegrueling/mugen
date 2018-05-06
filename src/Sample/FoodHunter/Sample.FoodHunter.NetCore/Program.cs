@@ -29,19 +29,19 @@ namespace Sample.FoodHunter.NetCore
                 Console.CancelKeyPress += Exit;
 
                 var frames = 0;
-                var s = Stopwatch.StartNew();
+                var s = new Stopwatch();
                 while (_shouldRun)
                 {
+                    s.Start();
                     await world.Update(0.033f);
+                    s.Stop();
                     ++frames;
                 }
-                s.Stop();
 
+                Console.WriteLine($"Avg. Time per Frame: {frames/s.ElapsedMilliseconds}");
                 Console.WriteLine($"Frames: {frames}");
                 Console.WriteLine($"Elapsed Time: {s.Elapsed}");
-                Console.WriteLine($"Avg. Time per Frame: {frames/s.ElapsedMilliseconds}");
             }
-            Console.ReadLine();
         }
 
         private static void FillWorld(World world)
