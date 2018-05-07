@@ -102,6 +102,21 @@
         }
 
         [TestMethod]
+        public void CreateEntityWithBlueprintAndAddComponent()
+        {
+            var manager = new EntityManager();
+            var blueprint = manager.CreateBlueprint(typeof(Test));
+
+            var entity = manager.CreateEntity(blueprint);
+
+            manager.AddComponent(entity, new Test2 { Float = 18.06f});
+
+            Assert.IsNotNull(entity);
+            Assert.IsTrue(manager.Exist(entity));
+            Assert.AreEqual(18.06f, manager.GetComponent<Test2>(entity).Float, float.Epsilon);
+        }
+
+        [TestMethod]
         public void GetComponentSetAndGetAgain()
         {
             var manager = new EntityManager();
@@ -118,32 +133,19 @@
             Assert.AreEqual(1806, comp2.Int);
         }
 
-        private unsafe struct Chunk
-        {
-            public int Value;
-            public fixed byte Buffer[1];
-        }
-
         [TestMethod]
-        public unsafe void TestMethod()
+        public void CreateEntitWithBlueprintAndRemoveComponent()
         {
-            var chunk = (Chunk*) Marshal.AllocHGlobal(sizeof(Chunk) + (sizeof(Test) + sizeof(Test2)) * 1024);
+            var manager = new EntityManager();
+            var blueprint = manager.CreateBlueprint(typeof(Test), typeof(Test2));
 
-            var testSpan = new Span<Test>(chunk->Buffer, 1024);
+            var entity = manager.CreateEntity(blueprint);
 
-            var test2Span = new Span<Test2>(chunk->Buffer + sizeof(Test)*1024, 1024);
+            manager.RemoveComponent<Test2>(entity);
 
-            for (var i = 0; i < 1024; ++i)
-            {
-                testSpan[i] = new Test { Int = i};
-                test2Span[i] = new Test2 { Float = i };
-            }
-
-            for (var i = 0; i < 1024; ++i)
-            {
-                Assert.AreEqual(i, testSpan[i].Int);
-                Assert.AreEqual(i, test2Span[i].Float, float.Epsilon);
-            }
+            Assert.IsNotNull(entity);
+            Assert.IsTrue(manager.Exist(entity));
+            Assert.IsFalse(manager.HasComponent<Test2>(entity));
         }
     }
 }

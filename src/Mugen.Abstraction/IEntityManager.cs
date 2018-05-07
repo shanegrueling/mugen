@@ -1,6 +1,5 @@
 ﻿namespace Mugen.Abstraction
 {
-    using System.Runtime.InteropServices;
     using CommandBuffers;
 
     public interface IEntityManager
@@ -16,12 +15,12 @@
 
         Entity CreateEntity(Blueprint blueprint);
         Entity CreateEntity();
-        
+
         void AddComponent<T>(in Entity entity) where T : struct, IComponent;
         void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent;
         void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent;
         void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent;
-        void RemoveComponent<T>(in Entity entity);
+        void RemoveComponent<T>(in Entity entity) where T : struct, IComponent;
         void DeleteEntity(in Entity entity);
 
         IEntityCommandBuffer<TSystem> CreateCommandBuffer<TSystem>();

@@ -48,12 +48,12 @@
 
         public bool HasComponent<T>(Entity entity) where T : struct, IComponent
         {
-            throw new NotImplementedException();
+            return _entityDataManager.HasComponent(entity, TypeManager.GetIndex<T>());
         }
 
         public bool HasComponent(Entity entity, ComponentType T)
         {
-            throw new NotImplementedException();
+            return _entityDataManager.HasComponent(entity, T.DataIndex);
         }
 
         public ref T GetComponent<T>(Entity entity) where T : struct, IComponent
@@ -88,7 +88,7 @@
 
         public unsafe void AddComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
         {
-            
+            _entityDataManager.AddComponent(entity, componentTypeIndex, pointer);
         }
 
         public unsafe void SetComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
@@ -101,19 +101,19 @@
             _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>()) = component;
         }
 
-        internal void RemoveComponent(Entity entity, int componentTypeIndex)
-        {
-            throw new NotImplementedException();
-        }
-
         public void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent
         {
-            throw new System.NotImplementedException();
+            _entityDataManager.SetComponent(entity, TypeManager.GetIndex<T>(), component);
         }
 
-        public void RemoveComponent<T>(in Entity entity)
+        public void RemoveComponent<T>(in Entity entity) where T : struct, IComponent
         {
-            throw new System.NotImplementedException();
+            _entityDataManager.RemoveComponent(entity, TypeManager.GetIndex<T>());
+        }
+
+        internal void RemoveComponent(Entity entity, int componentTypeIndex)
+        {
+            _entityDataManager.RemoveComponent(entity, componentTypeIndex);
         }
 
         public void DeleteEntity(in Entity entity)

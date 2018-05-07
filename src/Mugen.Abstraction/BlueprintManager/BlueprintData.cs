@@ -4,6 +4,11 @@
     {
         public readonly int TypeIndex;
 
+        public BlueprintComponentType(int typeIndex)
+        {
+            TypeIndex = typeIndex;
+        }
+
         public BlueprintComponentType(ComponentType type)
         {
             TypeIndex = type.DataIndex;

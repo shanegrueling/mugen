@@ -59,7 +59,7 @@ namespace Mugen.Abstraction
         {
             if (StaticTypeLookup<T>.TypeIndex == -1)
             {
-                StaticTypeLookup<T>.TypeIndex = FindTypeIndex(typeof(T));
+                StaticTypeLookup<T>.TypeIndex = GetIndex(typeof(T));
             }
 
             return StaticTypeLookup<T>.TypeIndex;

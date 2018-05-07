@@ -11,19 +11,11 @@
     {
         private readonly BlueprintManager _blueprintManager;
 
-        private struct EntityData
-        {
-            public BlueprintData* BlueprintData;
-            public int Version;
-            public BlueprintEntityChunk* Chunk;
-            public int IndexInChunk;
-        }
+        private readonly Queue<int> _freeEntityDataSlots;
+        private int _entityCount;
 
         private EntityData* _entityData;
         private int _entityDataLength;
-        private int _entityCount;
-
-        private readonly Queue<int> _freeEntityDataSlots;
 
         public EntityDataManager(BlueprintManager blueprintManager)
         {
@@ -32,6 +24,12 @@
             _entityData = (EntityData*) Marshal.AllocHGlobal(sizeof(EntityData) * _entityDataLength);
             _freeEntityDataSlots = new Queue<int>();
             _entityCount = 0;
+        }
+
+        public void Dispose()
+        {
+            Marshal.FreeHGlobal((IntPtr) _entityData);
+            _entityData = null;
         }
 
         public Entity CreateEntity()
@@ -123,21 +121,18 @@
                     break;
                 }
             }
+
             var offset = data.BlueprintData->Offsets[index];
 
-            Unsafe.CopyBlock(data.Chunk->Buffer + offset, pointer, (uint)TypeManager.GetComponentType(typeIndex).Size);
+            Unsafe.CopyBlock(data.Chunk->Buffer + offset, pointer, (uint) TypeManager.GetComponentType(typeIndex).Size);
         }
 
         private void Resize()
         {
             _entityDataLength *= 2;
-            _entityData = (EntityData*)Marshal.ReAllocHGlobal((IntPtr) _entityData, new IntPtr(sizeof(EntityData) * _entityDataLength));
-        }
-
-        public void Dispose()
-        {
-            Marshal.FreeHGlobal((IntPtr)_entityData);
-            _entityData = null;
+            _entityData = (EntityData*) Marshal.ReAllocHGlobal(
+                (IntPtr) _entityData,
+                new IntPtr(sizeof(EntityData) * _entityDataLength));
         }
 
         public bool Exists(Entity entity)
@@ -159,6 +154,7 @@
                     break;
                 }
             }
+
             var offset = data.BlueprintData->Offsets[index];
 
             var span = new Span<T>(data.Chunk->Buffer + offset, 1024);
@@ -170,15 +166,14 @@
             GetComponent<T>(entity, typeIndex) = component;
         }
 
-        public void AddComponent<T>(in Entity entity) where T : struct, IComponent
+        internal void AddComponent(Entity entity, int componentTypeIndex)
         {
             ref var data = ref _entityData[entity.DataIndex];
-            var ct = (ComponentType)typeof(T);
 
             if (data.BlueprintData == null)
             {
-                Span<ComponentType> ctA = stackalloc ComponentType[1];
-                ctA[0] = ct;
+                Span<int> ctA = stackalloc int[1];
+                ctA[0] = componentTypeIndex;
                 var blueprint = _blueprintManager.GetOrCreateBlueprint(ctA);
                 data.BlueprintData = blueprint.BlueprintData;
 
@@ -186,37 +181,67 @@
                 return;
             }
 
-            var oldCt = new Span<BlueprintComponentType>(data.BlueprintData->ComponentTypes, data.BlueprintData->ComponentTypesCount);
-            Span<ComponentType> newCt = stackalloc ComponentType[oldCt.Length + 1];
+            var oldCt = new Span<BlueprintComponentType>(
+                data.BlueprintData->ComponentTypes,
+                data.BlueprintData->ComponentTypesCount);
+            Span<int> newCt = stackalloc int[oldCt.Length + 1];
 
-            for (var i = 0; i < newCt.Length; ++i)
+            var i = 0;
+            for (; i < newCt.Length - 1; ++i)
             {
-                if (oldCt[i].TypeIndex < ct.DataIndex)
+                if (oldCt[i].TypeIndex < componentTypeIndex)
                 {
-                    newCt[i] = TypeManager.GetComponentType(oldCt[i].TypeIndex).Type;
+                    newCt[i] = oldCt[i].TypeIndex;
+                }
+                else
+                {
+                    break;
                 }
             }
 
+            newCt[i++] = componentTypeIndex;
+
+            for (; i < newCt.Length; ++i)
+            {
+                newCt[i] = oldCt[i - 1].TypeIndex;
+            }
+            
             var newBlueprint = _blueprintManager.GetOrCreateBlueprint(newCt);
-            CopyFromTo(data.Chunk, data.IndexInChunk, newBlueprint.BlueprintData->ChunkWithSpace, newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
 
+            data.BlueprintData = newBlueprint.BlueprintData;
+
+            CopyFromTo(
+                data.Chunk,
+                data.IndexInChunk,
+                newBlueprint.BlueprintData->ChunkWithSpace,
+                newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
+
+            AllocateEntity(ref data, newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
             RemoveEntity(data.Chunk, data.IndexInChunk);
+        }
 
-            data.Chunk = newBlueprint.BlueprintData->ChunkWithSpace;
-            data.IndexInChunk = newBlueprint.BlueprintData->ChunkWithSpace->EntityCount - 1;
+        internal void AddComponent(Entity entity, int componentTypeIndex, byte* pointer)
+        {
+            AddComponent(entity, componentTypeIndex);
+            SetComponent(entity, componentTypeIndex, pointer);
+        }
+
+        public void AddComponent<T>(in Entity entity) where T : struct, IComponent
+        {
+            AddComponent(entity, TypeManager.GetIndex<T>());
         }
 
         private void RemoveEntity(BlueprintEntityChunk* chunk, int index)
         {
             var blueprint = chunk->Blueprint;
-            
-            if (chunk->EntityCount > index+1)
+
+            if (chunk->EntityCount > index + 1)
             {
                 var amountOfEntitiesToMove = chunk->EntityCount - index;
                 var destination = chunk->Buffer + sizeof(Entity) * index;
                 var source = destination + sizeof(Entity);
 
-                Unsafe.CopyBlock(destination, source, (uint)(amountOfEntitiesToMove * sizeof(Entity)));
+                Unsafe.CopyBlock(destination, source, (uint) (amountOfEntitiesToMove * sizeof(Entity)));
 
                 var span = new Span<Entity>(destination, amountOfEntitiesToMove);
                 for (var i = 0; i < span.Length; ++i)
@@ -229,7 +254,10 @@
                     var destinationComponent = chunk->Buffer + blueprint->Offsets[i] + blueprint->SizeOfs[i] * index;
                     var sourceComponent = destinationComponent + blueprint->SizeOfs[i];
 
-                    Unsafe.CopyBlock(destinationComponent, sourceComponent, (uint)(amountOfEntitiesToMove * blueprint->SizeOfs[i]));
+                    Unsafe.CopyBlock(
+                        destinationComponent,
+                        sourceComponent,
+                        (uint) (amountOfEntitiesToMove * blueprint->SizeOfs[i]));
                 }
             }
 
@@ -238,7 +266,10 @@
                 var lastFree = blueprint->ChunkWithSpace;
                 while (lastFree != null)
                 {
-                    if (lastFree->ChunkWithSpace == null) break;
+                    if (lastFree->ChunkWithSpace == null)
+                    {
+                        break;
+                    }
 
                     lastFree = lastFree->ChunkWithSpace;
                 }
@@ -263,28 +294,32 @@
             var sourceTypeIndex = 0;
             var destinationTypeIndex = 0;
 
-            while (sourceTypeIndex < sourceBlueprint->ComponentTypesCount && destinationTypeIndex < destinationBlueprint->ComponentTypesCount)
+            while (sourceTypeIndex < sourceBlueprint->ComponentTypesCount &&
+                   destinationTypeIndex < destinationBlueprint->ComponentTypesCount)
             {
                 if (sourceBlueprint->ComponentTypes[sourceTypeIndex].TypeIndex <
                     destinationBlueprint->ComponentTypes[destinationTypeIndex].TypeIndex)
                 {
                     ++sourceTypeIndex;
-                } else if (sourceBlueprint->ComponentTypes[sourceTypeIndex].TypeIndex >
-                           destinationBlueprint->ComponentTypes[destinationTypeIndex].TypeIndex)
+                }
+                else if (sourceBlueprint->ComponentTypes[sourceTypeIndex].TypeIndex >
+                         destinationBlueprint->ComponentTypes[destinationTypeIndex].TypeIndex)
                 {
                     ++destinationTypeIndex;
                 }
                 else
                 {
-                    var sourcePointer = sourceChunk->Buffer + 
-                                        sourceBlueprint->Offsets[sourceTypeIndex] +
+                    var sourcePointer = sourceChunk->Buffer + sourceBlueprint->Offsets[sourceTypeIndex] +
                                         sourceBlueprint->SizeOfs[sourceTypeIndex] * sourceIndex;
 
                     var destionationPointer = destinationChunk->Buffer +
                                               destinationBlueprint->Offsets[destinationTypeIndex] +
                                               destinationBlueprint->SizeOfs[destinationTypeIndex] * destinationIndex;
-                    
-                    Unsafe.CopyBlock(sourcePointer, destionationPointer, (uint)destinationBlueprint->SizeOfs[destinationTypeIndex]);
+
+                    Unsafe.CopyBlock(
+                        sourcePointer,
+                        destionationPointer,
+                        (uint) destinationBlueprint->SizeOfs[destinationTypeIndex]);
                     ++sourceTypeIndex;
                     ++destinationTypeIndex;
                 }
@@ -305,8 +340,53 @@
             data.Chunk = null;
             data.IndexInChunk = -1;
             ++data.Version;
-            
+
             _freeEntityDataSlots.Enqueue(entity.DataIndex);
+        }
+
+        private struct EntityData
+        {
+            public BlueprintData* BlueprintData;
+            public int Version;
+            public BlueprintEntityChunk* Chunk;
+            public int IndexInChunk;
+        }
+
+        public bool HasComponent(Entity entity, int typeIndex)
+        {
+            ref var data = ref _entityData[entity.DataIndex];
+            for (var i = 0; i < data.BlueprintData->ComponentTypesCount; ++i)
+            {
+                if (data.BlueprintData->ComponentTypes[i].TypeIndex == typeIndex) return true;
+            }
+
+            return false;
+        }
+
+        public void RemoveComponent(in Entity entity, int typeIndex)
+        {
+            ref var data = ref _entityData[entity.DataIndex];
+            Span<int> blueprintComponents =
+                stackalloc int[data.BlueprintData->ComponentTypesCount - 1];
+            for (int i = 0, newBlueprintComponentsIndex = 0; i < data.BlueprintData->ComponentTypesCount; ++i)
+            {
+                if(data.BlueprintData->ComponentTypes[i].TypeIndex == typeIndex) continue;
+
+                blueprintComponents[newBlueprintComponentsIndex++] = data.BlueprintData->ComponentTypes[i].TypeIndex;
+            }
+
+            var newBlueprint = _blueprintManager.GetOrCreateBlueprint(blueprintComponents);
+            
+            data.BlueprintData = newBlueprint.BlueprintData;
+
+            CopyFromTo(
+                data.Chunk,
+                data.IndexInChunk,
+                newBlueprint.BlueprintData->ChunkWithSpace,
+                newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
+
+            AllocateEntity(ref data, newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
+            RemoveEntity(data.Chunk, data.IndexInChunk);
         }
     }
 }

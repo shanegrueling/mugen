@@ -18,6 +18,21 @@
             _matchers = new List<ComponentMatcher>();
         }
 
+        public Blueprint GetOrCreateBlueprint(Span<int> typeIndizes)
+        {
+            var blueprintComponentTypeArray = stackalloc BlueprintComponentType[typeIndizes.Length];
+            for (var i = 0; i < typeIndizes.Length; ++i)
+            {
+                blueprintComponentTypeArray[i] = new BlueprintComponentType(typeIndizes[i]);
+            }
+
+            var blueprintDataPointer = FindExistingBlueprint(new Span<BlueprintComponentType>(blueprintComponentTypeArray, typeIndizes.Length));
+
+            if(blueprintDataPointer != null) return new Blueprint(blueprintDataPointer);
+
+            return new Blueprint(CreateBlueprintData(blueprintComponentTypeArray, typeIndizes.Length));
+        }
+
         public Blueprint GetOrCreateBlueprint(Span<ComponentType> types)
         {
             var blueprintComponentTypeArray = stackalloc BlueprintComponentType[types.Length];
@@ -26,7 +41,7 @@
                 blueprintComponentTypeArray[i] = new BlueprintComponentType(types[i]);
             }
 
-            var blueprintDataPointer = FindExistingBlueprint(blueprintComponentTypeArray, types.Length);
+            var blueprintDataPointer = FindExistingBlueprint(new Span<BlueprintComponentType>(blueprintComponentTypeArray, types.Length));
 
             if(blueprintDataPointer != null) return new Blueprint(blueprintDataPointer);
 
@@ -102,19 +117,19 @@
             return chunk;
         }
 
-        private BlueprintData* FindExistingBlueprint(BlueprintComponentType* blueprintComponentTypeArray, int count)
+        private BlueprintData* FindExistingBlueprint(Span<BlueprintComponentType> blueprintComponentTypeArray)
         {
             var blueprintData = _lastBlueprintData;
             while (blueprintData != null)
             {
-                if (blueprintData->ComponentTypesCount != count)
+                if (blueprintData->ComponentTypesCount != blueprintComponentTypeArray.Length)
                 {
                     blueprintData = blueprintData->PreviousBlueprintData;
                     continue;
                 }
 
                 var isSame = true;
-                for (var i = 0; i < count; ++i)
+                for (var i = 0; i < blueprintComponentTypeArray.Length; ++i)
                 {
                     if (blueprintData->ComponentTypes[i].TypeIndex == blueprintComponentTypeArray[i].TypeIndex)
                     {
