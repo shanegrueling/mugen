@@ -55,7 +55,7 @@ namespace Mugen.Abstraction
             return _typeCount++;
         }
 
-        internal static int GetIndex<T>() where T : struct, IComponent
+        internal static int GetIndex<T>() where T : unmanaged, IComponent
         {
             if (StaticTypeLookup<T>.TypeIndex == -1)
             {

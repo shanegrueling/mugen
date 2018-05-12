@@ -39,7 +39,7 @@
         {
             public int Compare(ComponentMatcherTypes x, ComponentMatcherTypes y)
             {
-                return y.DataIndex - x.DataIndex;
+                return x.DataIndex - y.DataIndex;
             }
         }
 
@@ -101,7 +101,7 @@
 
         public IEntityArray GetEntityArray() => _entityArray;
 
-        public IComponentArray<T> GetComponentArray<T>() where T : struct, IComponent
+        public IComponentArray<T> GetComponentArray<T>() where T : unmanaged, IComponent
         {
             var index = TypeManager.GetIndex(typeof(T));
             for (var i = 0; i < _types.Length; ++i)

@@ -46,7 +46,7 @@
             return _entityDataManager.Exists(entity);
         }
 
-        public bool HasComponent<T>(Entity entity) where T : struct, IComponent
+        public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
         {
             return _entityDataManager.HasComponent(entity, TypeManager.GetIndex<T>());
         }
@@ -56,7 +56,7 @@
             return _entityDataManager.HasComponent(entity, T.DataIndex);
         }
 
-        public ref T GetComponent<T>(Entity entity) where T : struct, IComponent
+        public ref T GetComponent<T>(Entity entity) where T : unmanaged, IComponent
         {
             return ref _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>());
         }
@@ -64,22 +64,25 @@
         public Entity CreateEntity(Blueprint blueprint)
         {
             InvalidateMatchers();
+
             return _entityDataManager.CreateEntity(blueprint);
         }
 
         public Entity CreateEntity()
         {
             InvalidateMatchers();
+
             return _entityDataManager.CreateEntity();
         }
 
-        public void AddComponent<T>(in Entity entity) where T : struct, IComponent
+        public void AddComponent<T>(in Entity entity) where T : unmanaged, IComponent
         {
             InvalidateMatchers();
+
             _entityDataManager.AddComponent<T>(entity);
         }
 
-        public void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
         {
             InvalidateMatchers();
 
@@ -88,31 +91,46 @@
 
         public unsafe void AddComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
         {
+            InvalidateMatchers();
+
             _entityDataManager.AddComponent(entity, componentTypeIndex, pointer);
         }
 
         public unsafe void SetComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
         {
+            InvalidateMatchers();
+
             _entityDataManager.SetComponent(entity, componentTypeIndex, pointer);
         }
 
-        public void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public void ReplaceComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
         {
             _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>()) = component;
         }
 
-        public void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        internal unsafe void ReplaceComponent(Entity entity, int componentTypeIndex, byte* pointer)
         {
+            _entityDataManager.SetComponent(entity, componentTypeIndex, pointer);
+        }
+
+        public void SetComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
+        {
+            InvalidateMatchers();
+
             _entityDataManager.SetComponent(entity, TypeManager.GetIndex<T>(), component);
         }
 
-        public void RemoveComponent<T>(in Entity entity) where T : struct, IComponent
+        public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent
         {
+            InvalidateMatchers();
+
             _entityDataManager.RemoveComponent(entity, TypeManager.GetIndex<T>());
         }
 
         internal void RemoveComponent(Entity entity, int componentTypeIndex)
         {
+            InvalidateMatchers();
+
             _entityDataManager.RemoveComponent(entity, componentTypeIndex);
         }
 
@@ -165,8 +183,10 @@
         {
             public int Compare(ComponentType x, ComponentType y)
             {
-                return y.DataIndex - x.DataIndex;
+                return x.DataIndex - y.DataIndex;
             }
         }
+
+        
     }
 }

@@ -41,8 +41,10 @@
         {
             _currentStart = 0;
             _currentEnd = 0;
+            _chunkEnd = 0;
             _currentChunk = null;
             _blueprintIndex = -1;
+            _currentPointer = null;
         }
 
         private unsafe void Set(int index)
@@ -66,7 +68,7 @@
                 _currentPointer = _currentChunk->Buffer + _infoForCurrentBlueprint.Offset;
             }
 
-            while (index >= _currentStart + _currentChunk->EntityCount)
+            while (index >= _chunkEnd)
             {
                 _currentStart += _currentChunk->EntityCount;
                 _currentChunk = _currentChunk->NextChunk;

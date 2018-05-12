@@ -1,39 +1,41 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Mugen.Experimental.Test")]
+[assembly: InternalsVisibleTo("Mugen.Experimental.Test")]
 
 namespace Mugen.Experimental
 {
     using System;
-    using System.Threading.Tasks;
     using Abstraction;
     using Abstraction.Systems;
 
     public class World : IDisposable
     {
-        public IEntityManager EntityManager => _entityManager;
-        
-        private readonly  EntityManager _entityManager;
-        private IUpdateSystemBase[] _updateSystems;
+        private readonly EntityManager _entityManager;
         private int _countSystems;
+        private AUpdateSystem[] _updateSystems;
 
         public World()
         {
-            _updateSystems = new IUpdateSystemBase[4];
+            _updateSystems = new AUpdateSystem[4];
             _entityManager = new EntityManager();
         }
 
-        public async Task Update(float deltaTime)
+        public IEntityManager EntityManager => _entityManager;
+
+        public void Dispose()
+        {
+            _entityManager.Dispose();
+        }
+
+        public void Update(float deltaTime)
         {
             for (var i = 0; i < _countSystems; ++i)
             {
-                var system = _updateSystems[i];
-                if (system.IsAsync) await ((AUpdateSystemAsync) system).Update(deltaTime);
-                else ((AUpdateSystem) system).Update(deltaTime);
+                _updateSystems[i].Update(deltaTime);
             }
         }
 
-        public void AddSystem(IUpdateSystemBase system)
+        public void AddSystem(AUpdateSystem system)
         {
             if (_updateSystems.Length <= _countSystems)
             {
@@ -46,16 +48,9 @@ namespace Mugen.Experimental
 
         private void ResizeArray()
         {
-            var newArray = new IUpdateSystemBase[_countSystems * 2];
+            var newArray = new AUpdateSystem[_countSystems + 4];
             Array.Copy(_updateSystems, newArray, _countSystems);
             _updateSystems = newArray;
         }
-
-        public void Dispose()
-        {
-            _entityManager.Dispose();
-        }
     }
-
-
 }

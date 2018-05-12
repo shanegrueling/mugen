@@ -15,7 +15,7 @@
         public int Frames { get;set; }
 
         [Benchmark]
-        public async Task CreateAndRunWorld()
+        public void CreateAndRunWorld()
         {
             using (var world = new World())
             {
@@ -30,7 +30,7 @@
                 
                 for(var i = 0; i < Frames; ++i)
                 {
-                    await world.Update(0.033f);
+                    world.Update(0.033f);
                 }
             }
         }

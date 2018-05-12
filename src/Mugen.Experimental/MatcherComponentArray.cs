@@ -8,7 +8,7 @@
         public abstract void Invalidate();
     }
 
-    internal sealed class MatcherComponentArray<T> : AMatcherComponentArray, IComponentArray<T> where T : struct, IComponent
+    internal sealed class MatcherComponentArray<T> : AMatcherComponentArray, IComponentArray<T> where T : unmanaged, IComponent
     {
         private readonly ComponentMatcher _componentMatcher;
         private int _blueprintIndex;
@@ -20,7 +20,7 @@
         private int _chunkEnd;
 
         private unsafe BlueprintEntityChunk* _currentChunk;
-        private unsafe void* _currentPointer;
+        private unsafe byte* _currentPointer;
 
         private int _currentStart;
         private int _currentEnd;
@@ -48,6 +48,8 @@
         {
             _currentStart = 0;
             _currentEnd = 0;
+            _chunkEnd = 0;
+            _currentPointer = null;
             _currentChunk = null;
             _blueprintIndex = -1;
         }
@@ -76,7 +78,7 @@
                 }
                 _currentEnd = _currentStart + blueprintData.EntityCount;
                 _currentChunk = blueprintData.FirstChunk;
-                _chunkEnd = _currentStart + _currentChunk->EntityCount;
+                _chunkEnd = _currentChunk->EntityCount;
                 _currentPointer = _currentChunk->Buffer + _infoForCurrentBlueprint.Offset;
             }
 
@@ -84,7 +86,7 @@
             {
                 _currentStart += _currentChunk->EntityCount;
                 _currentChunk = _currentChunk->NextChunk;
-                _chunkEnd = _currentStart + _currentChunk->EntityCount;
+                _chunkEnd = _currentChunk->EntityCount;
                 _currentPointer = _currentChunk->Buffer + _infoForCurrentBlueprint.Offset;
             }
         }
@@ -94,9 +96,13 @@
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if(index < _currentStart || index >= _chunkEnd) Set(index);
-
-                return ref Unsafe.AsRef<T>((byte*)_currentPointer + _size * (index - _currentStart));
+                var localIndex = index - _currentStart;
+                if ((uint) localIndex >= (uint) _chunkEnd)
+                {
+                    Set(index);
+                    localIndex = index - _currentStart;
+                }
+                return ref Unsafe.AsRef<T>(_currentPointer + _size * localIndex);
             }
         }
     }

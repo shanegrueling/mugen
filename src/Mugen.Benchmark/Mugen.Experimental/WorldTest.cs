@@ -30,7 +30,7 @@
 
                 for (var i = 0; i < frames; ++i)
                 {
-                    world.Update(0.033f).Wait();
+                    world.Update(0.033f);
                 }
             }
         }
@@ -58,7 +58,7 @@
 
                 for (var i = 0; i < frames; ++i)
                 {
-                    world.Update(0.033f).Wait();
+                    world.Update(0.033f);
                 }
             }
         }

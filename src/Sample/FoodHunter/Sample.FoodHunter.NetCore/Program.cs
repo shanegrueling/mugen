@@ -13,7 +13,7 @@ namespace Sample.FoodHunter.NetCore
     {
         private static bool _shouldRun;
 
-        private static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
             using (var world = new World())
             {
@@ -32,7 +32,7 @@ namespace Sample.FoodHunter.NetCore
                 while (_shouldRun)
                 {
                     s.Start();
-                    await world.Update(0.033f);
+                    world.Update(0.033f);
                     s.Stop();
                     ++frames;
                 }

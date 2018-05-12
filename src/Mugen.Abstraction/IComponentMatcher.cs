@@ -5,7 +5,7 @@
         int Length { get; }
         
         IEntityArray GetEntityArray();
-        IComponentArray<T> GetComponentArray<T>() where T : struct, IComponent;
+        IComponentArray<T> GetComponentArray<T>() where T : unmanaged, IComponent;
     }
 
     public interface IComponentGroup

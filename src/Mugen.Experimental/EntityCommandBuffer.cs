@@ -72,7 +72,7 @@
             CreateEntity(new Blueprint(null));
         }
 
-        public unsafe void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public unsafe void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
         {
             var componentSize = Unsafe.SizeOf<T>();
 
@@ -87,7 +87,7 @@
             Unsafe.AsRef<T>((byte*)Unsafe.AsPointer(ref addCommand) + sizeof(AddCommand)) = component;
         }
 
-        public unsafe void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public unsafe void ReplaceComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
         {
             var componentSize = Unsafe.SizeOf<T>();
 
@@ -102,7 +102,7 @@
             Unsafe.AsRef<T>((byte*)Unsafe.AsPointer(ref replaceCommand) + sizeof(ReplaceCommand)) = component;
         }
 
-        public unsafe void SetComponent<T>(in Entity entity, in T component) where T : struct, IComponent
+        public unsafe void SetComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
         {
             var componentSize = Unsafe.SizeOf<T>();
 
@@ -117,7 +117,7 @@
             Unsafe.AsRef<T>((byte*)Unsafe.AsPointer(ref setCommand) + sizeof(SetNewCommand)) = component;
         }
 
-        public unsafe void RemoveComponent<T>(in Entity entity) where T : struct, IComponent
+        public unsafe void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent
         {
             ref var removeCommand = ref GetPointer<RemoveCommand>(0);
 
@@ -167,7 +167,7 @@
                             break;
                         case Commands.Replace:
                             var replaceCommand = (ReplaceCommand*)commandPointer;
-                            _manager.AddComponent(
+                            _manager.ReplaceComponent(
                                 replaceCommand->Entity.DataIndex == -1 ? lastEntity : replaceCommand->Entity,
                                 replaceCommand->ComponentTypeIndex, 
                                 (byte*)replaceCommand + sizeof(ReplaceCommand)
@@ -182,7 +182,7 @@
                             );
                             break;
                         case Commands.Remove:
-                            var removeCommand = (RemoveCommand*)commandPointer;
+                            var removeCommand = (RemoveCommand*) commandPointer;
                             _manager.RemoveComponent(removeCommand->Entity, removeCommand->ComponentTypeIndex);
                             break;
                         case Commands.Delete:
@@ -288,32 +288,32 @@
             return this;
         }
 
-        public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity) where T1 : struct, IComponent
+        public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity) where T1 : unmanaged, IComponent
         {
             _commandBuffer.AddComponent<T1>(entity, default);
             return this;
         }
 
-        public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity, in T1 component) where T1 : struct, IComponent
+        public IEntityCommandBuffer<T> AddComponent<T1>(in Entity entity, in T1 component) where T1 : unmanaged, IComponent
         {
             _commandBuffer.AddComponent(entity, component);
             return this;
         }
 
         public IEntityCommandBuffer<T> ReplaceComponent<T1>(in Entity entity, in T1 component)
-            where T1 : struct, IComponent
+            where T1 : unmanaged, IComponent
         {
             _commandBuffer.ReplaceComponent(entity, component);
             return this;
         }
 
-        public IEntityCommandBuffer<T> SetComponent<T1>(in Entity entity, in T1 component) where T1 : struct, IComponent
+        public IEntityCommandBuffer<T> SetComponent<T1>(in Entity entity, in T1 component) where T1 : unmanaged, IComponent
         {
             _commandBuffer.SetComponent(entity, component);
             return this;
         }
 
-        public IEntityCommandBuffer<T> RemoveComponent<T1>(in Entity entity) where T1 : struct, IComponent
+        public IEntityCommandBuffer<T> RemoveComponent<T1>(in Entity entity) where T1 : unmanaged, IComponent
         {
             _commandBuffer.RemoveComponent<T1>(entity);
             return this;
@@ -330,7 +330,7 @@
             _commandBuffer.Playback();
         }
 
-        public INewEntityCommandBuffer<T> SetComponent<T1>(in T1 component) where T1 : struct, IComponent
+        public INewEntityCommandBuffer<T> SetComponent<T1>(in T1 component) where T1 : unmanaged, IComponent
         {
             _commandBuffer.SetComponent(new Entity(-1, -1), component);
             return this;
