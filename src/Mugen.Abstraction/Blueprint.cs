@@ -20,17 +20,27 @@
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
 
-            return obj is Blueprint && Equals((Blueprint) obj);
+            return obj is Blueprint blueprint && Equals(blueprint);
         }
 
         public override int GetHashCode()
         {
             return unchecked((int) (long) BlueprintData);
+        }
+    }
+
+    public readonly struct Blueprint<TDefinition>
+    {
+        internal readonly Blueprint RealBlueprint;
+
+        public Blueprint(Blueprint blueprint)
+        {
+            RealBlueprint = blueprint;
         }
     }
 

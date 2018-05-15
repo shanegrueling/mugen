@@ -14,6 +14,7 @@
         ref T GetComponent<T>(Entity entity) where T : unmanaged, IComponent;
 
         Entity CreateEntity(Blueprint blueprint);
+        Entity CreateEntity<TDefinition>(Blueprint<TDefinition> blueprint);
         Entity CreateEntity();
 
         void AddComponent<T>(in Entity entity) where T : unmanaged, IComponent;

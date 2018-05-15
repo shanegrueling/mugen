@@ -23,6 +23,7 @@
     public interface IEntityCommandBuffer<TSystem>
     {
         INewEntityCommandBuffer<TSystem> CreateEntity(in Blueprint blueprint);
+        INewEntityCommandBuffer<TSystem> CreateEntity<TDefinition>(in Blueprint<TDefinition> blueprint);
         INewEntityCommandBuffer<TSystem> CreateEntity();
 
         IEntityCommandBuffer<TSystem> AddComponent<T>(in Entity entity) where T : unmanaged, IComponent;

@@ -282,6 +282,12 @@
             return this;
         }
 
+        public INewEntityCommandBuffer<T> CreateEntity<TDefinition>(in Blueprint<TDefinition> blueprint)
+        {
+            _commandBuffer.CreateEntity(blueprint.RealBlueprint);
+            return this;
+        }
+
         public unsafe INewEntityCommandBuffer<T> CreateEntity()
         {
             _commandBuffer.CreateEntity(new Blueprint(null));

@@ -68,6 +68,13 @@
             return _entityDataManager.CreateEntity(blueprint);
         }
 
+        public Entity CreateEntity<TDefinition>(Blueprint<TDefinition> blueprint)
+        {
+            InvalidateMatchers();
+
+            return _entityDataManager.CreateEntity(blueprint.RealBlueprint);
+        }
+
         public Entity CreateEntity()
         {
             InvalidateMatchers();
