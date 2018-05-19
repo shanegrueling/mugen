@@ -2,6 +2,7 @@
 {
     using Components;
     using Mugen.Abstraction;
+    using Mugen.Abstraction.Arrays;
     using Mugen.Math;
 
     public static class SearchForFood
@@ -18,7 +19,10 @@
                 {
                     ref var foodPosition = ref food.Positions[j];
                     var distance = float2.Distance(eaterPosition.Value, foodPosition.Value);
-                    if (closestDistance <= distance) return;
+                    if (closestDistance <= distance)
+                    {
+                        return;
+                    }
 
                     closestDistance = distance;
 

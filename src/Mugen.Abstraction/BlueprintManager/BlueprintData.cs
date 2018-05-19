@@ -26,7 +26,7 @@
 
         public int* Offsets;
         public int* SizeOfs;
-        
+
         public int EntityCount;
 
         public BlueprintData* PreviousBlueprintData;

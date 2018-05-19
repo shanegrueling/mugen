@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen", "Mugen\Mugen.csproj", "{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Benchmark", "Mugen.Benchmark\Mugen.Benchmark.csproj", "{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Math", "Mugen.Math\Mugen.Math.csproj", "{26D8F1E2-BA31-4123-9A62-BBDA172DE312}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Test", "Mugen.Test\Mugen.Test.csproj", "{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Abstraction", "Mugen.Abstraction\Mugen.Abstraction.csproj", "{D6745C3A-4F68-408B-BCC9-8C8B013AC654}"
 EndProject
@@ -17,19 +11,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.FoodHunter.Logic", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.FoodHunter.Test", "Sample\FoodHunter\Test\Sample.FoodHunter.Test.csproj", "{3795AF24-D8EA-4314-A055-B8B68FA55503}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StructList", "StructList\StructList.csproj", "{D9538A71-0F27-4330-A8E3-5D9203EB5B4A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{6FE646C2-7BFF-42B9-AE7F-2F4818DCC006}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FoodHunter", "FoodHunter", "{2A187AA8-A256-46A3-8B85-FF9976D70FB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Experimental", "Mugen.Experimental\Mugen.Experimental.csproj", "{610A4654-4496-4180-86FD-F954592965E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen", "Mugen\Mugen.csproj", "{610A4654-4496-4180-86FD-F954592965E8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.FoodHunter.NetCore", "Sample\FoodHunter\Sample.FoodHunter.NetCore\Sample.FoodHunter.NetCore.csproj", "{0B5A99B0-3CBB-40CE-A2C4-B1CAE93AB328}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Experimental.Test", "Mugen.Experimental.Test\Mugen.Experimental.Test.csproj", "{3BA58DF1-F748-4ABE-982C-2F92BC878348}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkGameTest", "NetworkGameTest\NetworkGameTest.csproj", "{BFED6B3B-C3D1-4EFB-9ACA-62AC6A419DCA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mugen.Test", "Mugen.Test\Mugen.Test.csproj", "{3BA58DF1-F748-4ABE-982C-2F92BC878348}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,22 +27,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0988E1C0-08AE-43CD-BA64-2D2AFC24C1EA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{509EC0FF-58C0-4CB6-B64A-4F9147EF1634}.Release|Any CPU.Build.0 = Release|Any CPU
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26D8F1E2-BA31-4123-9A62-BBDA172DE312}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF3DA8BB-85B8-4C60-A763-EAF410DDB916}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D6745C3A-4F68-408B-BCC9-8C8B013AC654}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D6745C3A-4F68-408B-BCC9-8C8B013AC654}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6745C3A-4F68-408B-BCC9-8C8B013AC654}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -65,10 +43,6 @@ Global
 		{3795AF24-D8EA-4314-A055-B8B68FA55503}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3795AF24-D8EA-4314-A055-B8B68FA55503}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3795AF24-D8EA-4314-A055-B8B68FA55503}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9538A71-0F27-4330-A8E3-5D9203EB5B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9538A71-0F27-4330-A8E3-5D9203EB5B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9538A71-0F27-4330-A8E3-5D9203EB5B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9538A71-0F27-4330-A8E3-5D9203EB5B4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{610A4654-4496-4180-86FD-F954592965E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{610A4654-4496-4180-86FD-F954592965E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{610A4654-4496-4180-86FD-F954592965E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,10 +55,6 @@ Global
 		{3BA58DF1-F748-4ABE-982C-2F92BC878348}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BA58DF1-F748-4ABE-982C-2F92BC878348}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BA58DF1-F748-4ABE-982C-2F92BC878348}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BFED6B3B-C3D1-4EFB-9ACA-62AC6A419DCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFED6B3B-C3D1-4EFB-9ACA-62AC6A419DCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFED6B3B-C3D1-4EFB-9ACA-62AC6A419DCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFED6B3B-C3D1-4EFB-9ACA-62AC6A419DCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

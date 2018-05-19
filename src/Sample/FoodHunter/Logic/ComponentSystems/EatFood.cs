@@ -1,8 +1,8 @@
 ﻿namespace Sample.FoodHunter.Logic.ComponentSystems
 {
-    using System;
     using Components;
     using Mugen.Abstraction;
+    using Mugen.Abstraction.Arrays;
     using Mugen.Abstraction.CommandBuffers;
     using Mugen.Math;
 
@@ -24,7 +24,10 @@
                 {
                     ref var eaterPosition = ref eater.Positions[j];
 
-                    if(float2.Distance(foodPosition.Value, eaterPosition.Value) > 0.5f) continue;
+                    if (float2.Distance(foodPosition.Value, eaterPosition.Value) > 0.5f)
+                    {
+                        continue;
+                    }
 
                     ref var score = ref eater.Scores[j];
                     score.Value += food.PointValues[i].Value;

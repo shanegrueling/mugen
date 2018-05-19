@@ -15,11 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Buffers" Version="4.3.0" />
+    <PackageReference Include="System.Memory" Version="4.5.0-preview2-26406-04" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0-preview2-26406-04" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StructList\StructList.csproj" />
+    <ProjectReference Include="..\Mugen.Abstraction\Mugen.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>

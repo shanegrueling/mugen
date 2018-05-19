@@ -2,6 +2,7 @@
 {
     using Components;
     using Abstraction;
+    using Abstraction.Arrays;
 
     internal static class Move
     {

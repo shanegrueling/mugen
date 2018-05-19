@@ -1,29 +1,25 @@
-﻿namespace Mugen.Experimental
+﻿namespace Mugen
 {
     using System.Runtime.CompilerServices;
     using Abstraction;
+    using Abstraction.Arrays;
 
     internal sealed class EntityArray : IEntityArray
     {
         private readonly ComponentMatcher _componentMatcher;
-        private int _blueprintIndex;
 
         private readonly BlueprintInfo _infoForCurrentBlueprint;
+
+        private readonly int _size;
+        private int _blueprintIndex;
 
         private int _chunkEnd;
 
         private unsafe BlueprintEntityChunk* _currentChunk;
+        private int _currentEnd;
         private unsafe void* _currentPointer;
 
         private int _currentStart;
-        private int _currentEnd;
-
-        private readonly int _size;
-
-        private struct BlueprintInfo
-        {
-            public int Offset;
-        }
 
         public unsafe EntityArray(ComponentMatcher componentMatcher)
         {
@@ -35,6 +31,20 @@
             _currentEnd = 0;
             _currentChunk = null;
             _blueprintIndex = -1;
+        }
+
+        public unsafe ref Entity this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                if (index < _currentStart || index >= _chunkEnd)
+                {
+                    Set(index);
+                }
+
+                return ref Unsafe.AsRef<Entity>((byte*) _currentPointer + _size * (index - _currentStart));
+            }
         }
 
         public unsafe void Invalidate()
@@ -77,15 +87,9 @@
             }
         }
 
-        public unsafe ref Entity this[int index] 
+        private struct BlueprintInfo
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if(index < _currentStart || index >= _chunkEnd) Set(index);
-
-                return ref Unsafe.AsRef<Entity>((byte*)_currentPointer + _size * (index - _currentStart));
-            }
+            public int Offset;
         }
     }
 }

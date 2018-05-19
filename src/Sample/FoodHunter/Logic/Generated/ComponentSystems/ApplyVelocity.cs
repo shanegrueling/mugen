@@ -1,9 +1,10 @@
 ﻿namespace Sample.FoodHunter.Logic.Generated.ComponentSystems
 {
     using Components;
+    using Mugen;
     using Mugen.Abstraction;
+    using Mugen.Abstraction.Arrays;
     using Mugen.Abstraction.Systems;
-    using Mugen.Experimental;
 
     [GeneratedComponentSystem(typeof(Logic.ComponentSystems.ApplyVelocity))]
     public sealed class ApplyVelocity : AUpdateSystem

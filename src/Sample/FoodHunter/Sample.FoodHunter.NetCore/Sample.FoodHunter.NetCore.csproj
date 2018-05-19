@@ -14,7 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Mugen.Experimental\Mugen.Experimental.csproj" />
     <ProjectReference Include="..\Logic\Sample.FoodHunter.Logic.csproj" />
   </ItemGroup>
 

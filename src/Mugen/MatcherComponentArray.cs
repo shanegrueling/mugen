@@ -1,36 +1,33 @@
-﻿namespace Mugen.Experimental
+﻿namespace Mugen
 {
     using System.Runtime.CompilerServices;
     using Abstraction;
+    using Abstraction.Arrays;
 
     internal abstract class AMatcherComponentArray
     {
         public abstract void Invalidate();
     }
 
-    internal sealed class MatcherComponentArray<T> : AMatcherComponentArray, IComponentArray<T> where T : unmanaged, IComponent
+    internal sealed class MatcherComponentArray<T> : AMatcherComponentArray, IComponentArray<T>
+        where T : unmanaged, IComponent
     {
         private readonly ComponentMatcher _componentMatcher;
-        private int _blueprintIndex;
 
-
-        private BlueprintInfo _infoForCurrentBlueprint;
+        private readonly int _size;
         private readonly int _typeIndex;
+        private int _blueprintIndex;
 
         private int _chunkEnd;
 
         private unsafe BlueprintEntityChunk* _currentChunk;
+        private int _currentEnd;
         private unsafe byte* _currentPointer;
 
         private int _currentStart;
-        private int _currentEnd;
 
-        private readonly int _size;
 
-        private struct BlueprintInfo
-        {
-            public int Offset;
-        }
+        private BlueprintInfo _infoForCurrentBlueprint;
 
         public unsafe MatcherComponentArray(ComponentMatcher componentMatcher)
         {
@@ -42,6 +39,22 @@
             _currentEnd = 0;
             _currentChunk = null;
             _blueprintIndex = -1;
+        }
+
+        public unsafe ref T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var localIndex = index - _currentStart;
+                if ((uint) localIndex >= (uint) _chunkEnd)
+                {
+                    Set(index);
+                    localIndex = index - _currentStart;
+                }
+
+                return ref Unsafe.AsRef<T>(_currentPointer + _size * localIndex);
+            }
         }
 
         public override unsafe void Invalidate()
@@ -76,6 +89,7 @@
                         _infoForCurrentBlueprint.Offset = blueprintData.Offsets[i];
                     }
                 }
+
                 _currentEnd = _currentStart + blueprintData.EntityCount;
                 _currentChunk = blueprintData.FirstChunk;
                 _chunkEnd = _currentChunk->EntityCount;
@@ -91,19 +105,9 @@
             }
         }
 
-        public unsafe ref T this[int index] 
+        private struct BlueprintInfo
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var localIndex = index - _currentStart;
-                if ((uint) localIndex >= (uint) _chunkEnd)
-                {
-                    Set(index);
-                    localIndex = index - _currentStart;
-                }
-                return ref Unsafe.AsRef<T>(_currentPointer + _size * localIndex);
-            }
+            public int Offset;
         }
     }
 }

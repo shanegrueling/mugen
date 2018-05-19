@@ -1,50 +1,56 @@
-﻿namespace Mugen
+﻿using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Mugen.Test")]
+
+namespace Mugen
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using System;
+    using Abstraction;
+    using Abstraction.Systems;
 
-    public class World
+    public class World : IDisposable
     {
-        private readonly ISystemFactory _systemFactory;
-        private readonly List<IUpdateSystemBase> _updateSystems;
+        private readonly EntityManager _entityManager;
+        private int _countSystems;
+        private AUpdateSystem[] _updateSystems;
 
-        public IEntityManager EntityManager { get; }
-
-        public World(ISystemFactory systemFactory)
+        public World()
         {
-            _systemFactory = systemFactory;
-            _updateSystems = new List<IUpdateSystemBase>();
-            EntityManager = new EntityManager();
+            _updateSystems = new AUpdateSystem[4];
+            _entityManager = new EntityManager();
         }
 
-        public World AddSystem<T>()
+        public IEntityManager EntityManager => _entityManager;
+
+        public void Dispose()
         {
-            return AddSystem(_systemFactory.Create<T>(this));
+            _entityManager.Dispose();
         }
 
-        public World AddSystem(ISystem system)
+        public void Update(float deltaTime)
         {
-            if(system.HasUpdateMethod)
+            for (var i = 0; i < _countSystems; ++i)
             {
-                _updateSystems.Add((IUpdateSystemBase)system);
+                _updateSystems[i].Update(deltaTime);
+            }
+        }
+
+        public void AddSystem(AUpdateSystem system)
+        {
+            if (_updateSystems.Length <= _countSystems)
+            {
+                ResizeArray();
             }
 
-            return this;
+            _updateSystems[_countSystems] = system;
+            ++_countSystems;
         }
 
-        public async Task Update(float deltaTime)
+        private void ResizeArray()
         {
-            foreach(var system in _updateSystems)
-            {
-                if(system.IsAsync)
-                {
-                    await ((IUpdateSystemAsync)system).Update(deltaTime);
-                }
-                else
-                {
-                    ((IUpdateSystem)system).Update(deltaTime);
-                }
-            }
+            var newArray = new AUpdateSystem[_countSystems + 4];
+            Array.Copy(_updateSystems, newArray, _countSystems);
+            _updateSystems = newArray;
         }
     }
 }

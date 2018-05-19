@@ -1,4 +1,4 @@
-﻿namespace Mugen.Experimental.Test
+﻿namespace Mugen.Test
 {
     using System.Collections.Generic;
     using Abstraction;

@@ -1,4 +1,4 @@
-﻿namespace Mugen.Experimental
+﻿namespace Mugen
 {
     using System;
     using System.Collections.Generic;
@@ -8,14 +8,36 @@
 
     internal unsafe class BlueprintManager : IDisposable
     {
-        private BlueprintData* _lastBlueprintData;
-        
         private readonly List<ComponentMatcher> _matchers;
+        private BlueprintData* _lastBlueprintData;
 
         public BlueprintManager()
         {
             _lastBlueprintData = null;
             _matchers = new List<ComponentMatcher>();
+        }
+
+        public void Dispose()
+        {
+            while (_lastBlueprintData != null)
+            {
+                var next = _lastBlueprintData->PreviousBlueprintData;
+
+                var chunk = _lastBlueprintData->FirstChunk;
+                while (chunk != null)
+                {
+                    var nextChunk = chunk->NextChunk;
+
+                    Marshal.FreeHGlobal((IntPtr) chunk);
+                    chunk = nextChunk;
+                }
+
+                Marshal.FreeHGlobal((IntPtr) _lastBlueprintData->ComponentTypes);
+                Marshal.FreeHGlobal((IntPtr) _lastBlueprintData->Offsets);
+                Marshal.FreeHGlobal((IntPtr) _lastBlueprintData->SizeOfs);
+                Marshal.FreeHGlobal((IntPtr) _lastBlueprintData);
+                _lastBlueprintData = next;
+            }
         }
 
         public Blueprint GetOrCreateBlueprint(Span<int> typeIndizes)
@@ -26,9 +48,13 @@
                 blueprintComponentTypeArray[i] = new BlueprintComponentType(typeIndizes[i]);
             }
 
-            var blueprintDataPointer = FindExistingBlueprint(new Span<BlueprintComponentType>(blueprintComponentTypeArray, typeIndizes.Length));
+            var blueprintDataPointer = FindExistingBlueprint(
+                new Span<BlueprintComponentType>(blueprintComponentTypeArray, typeIndizes.Length));
 
-            if(blueprintDataPointer != null) return new Blueprint(blueprintDataPointer);
+            if (blueprintDataPointer != null)
+            {
+                return new Blueprint(blueprintDataPointer);
+            }
 
             return new Blueprint(CreateBlueprintData(blueprintComponentTypeArray, typeIndizes.Length));
         }
@@ -41,9 +67,13 @@
                 blueprintComponentTypeArray[i] = new BlueprintComponentType(types[i]);
             }
 
-            var blueprintDataPointer = FindExistingBlueprint(new Span<BlueprintComponentType>(blueprintComponentTypeArray, types.Length));
+            var blueprintDataPointer = FindExistingBlueprint(
+                new Span<BlueprintComponentType>(blueprintComponentTypeArray, types.Length));
 
-            if(blueprintDataPointer != null) return new Blueprint(blueprintDataPointer);
+            if (blueprintDataPointer != null)
+            {
+                return new Blueprint(blueprintDataPointer);
+            }
 
             return new Blueprint(CreateBlueprintData(blueprintComponentTypeArray, types.Length));
         }
@@ -55,7 +85,7 @@
             var byteSize = count * sizeof(BlueprintComponentType);
             blueprintData->ComponentTypes = (BlueprintComponentType*) Marshal.AllocHGlobal(byteSize);
             Buffer.MemoryCopy(blueprintComponentTypeArray, blueprintData->ComponentTypes, byteSize, byteSize);
-            
+
             blueprintData->Offsets = (int*) Marshal.AllocHGlobal(sizeof(int) * count);
             blueprintData->SizeOfs = (int*) Marshal.AllocHGlobal(sizeof(int) * count);
 
@@ -67,13 +97,14 @@
                 var size = TypeManager.GetComponentType(blueprintComponentTypeArray[i].TypeIndex).Size;
                 blueprintData->SizeOfs[i] = size;
                 blueprintData->Offsets[i] = offset;
-                
+
                 offset += size * 1024;
 
                 sizeOfInstance += size;
             }
 
-            blueprintData->ChunkWithSpace = blueprintData->LastChunk = blueprintData->FirstChunk = BuildChunk(blueprintData, sizeOfInstance);
+            blueprintData->ChunkWithSpace = blueprintData->LastChunk =
+                blueprintData->FirstChunk = BuildChunk(blueprintData, sizeOfInstance);
 
             blueprintData->PreviousBlueprintData = _lastBlueprintData;
             _lastBlueprintData = blueprintData;
@@ -113,7 +144,7 @@
             chunk->EntityCount = 0;
             chunk->ChunkWithSpace = null;
             chunk->NextChunk = null;
-            
+
             return chunk;
         }
 
@@ -149,29 +180,6 @@
             }
 
             return blueprintData;
-        }
-
-        public void Dispose()
-        {
-            while (_lastBlueprintData != null)
-            {
-                var next = _lastBlueprintData->PreviousBlueprintData;
-
-                var chunk = _lastBlueprintData->FirstChunk;
-                while (chunk != null)
-                {
-                    var nextChunk = chunk->NextChunk;
-
-                    Marshal.FreeHGlobal((IntPtr)chunk);
-                    chunk = nextChunk;
-                }
-
-                Marshal.FreeHGlobal((IntPtr)_lastBlueprintData->ComponentTypes);
-                Marshal.FreeHGlobal((IntPtr)_lastBlueprintData->Offsets);
-                Marshal.FreeHGlobal((IntPtr)_lastBlueprintData->SizeOfs);
-                Marshal.FreeHGlobal((IntPtr)_lastBlueprintData);
-                _lastBlueprintData = next;
-            }
         }
 
         public void CheckBlueprintsForMatcher(ComponentMatcher matcher)

@@ -3,7 +3,7 @@
     using System;
     using Generated.ComponentSystems;
     using Math;
-    using World = global::Mugen.Experimental.World;
+    using World = global::Mugen.World;
 
     public static class WorldTest
     {

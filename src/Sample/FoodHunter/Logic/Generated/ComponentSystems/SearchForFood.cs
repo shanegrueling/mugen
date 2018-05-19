@@ -1,9 +1,10 @@
 ﻿namespace Sample.FoodHunter.Logic.Generated.ComponentSystems
 {
     using Components;
+    using Mugen;
     using Mugen.Abstraction;
+    using Mugen.Abstraction.Arrays;
     using Mugen.Abstraction.Systems;
-    using Mugen.Experimental;
 
     [GeneratedComponentSystem(typeof(Logic.ComponentSystems.SearchForFood))]
     public sealed class SearchForFood : AUpdateSystem
@@ -26,12 +27,6 @@
         {
             private readonly IComponentMatcher _matcher;
 
-            public int Length => _matcher.Length;
-
-            public IComponentArray<Position> Positions { get; }
-            public IComponentArray<Velocity> Velocity { get; }
-            public IComponentArray<Score> Score { get; }
-
             public Eater(IComponentMatcher matcher)
             {
                 _matcher = matcher;
@@ -39,16 +34,17 @@
                 Velocity = _matcher.GetComponentArray<Velocity>();
                 Score = _matcher.GetComponentArray<Score>();
             }
+
+            public int Length => _matcher.Length;
+
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<Velocity> Velocity { get; }
+            public IComponentArray<Score> Score { get; }
         }
 
         private sealed class Food : Logic.ComponentSystems.SearchForFood.IFood
         {
             private readonly IComponentMatcher _matcher;
-
-            public int Length => _matcher.Length;
-
-            public IComponentArray<Position> Positions { get; }
-            public IComponentArray<PointValue> PointValue { get; }
 
             public Food(IComponentMatcher matcher)
             {
@@ -57,6 +53,11 @@
                 Positions = _matcher.GetComponentArray<Position>();
                 PointValue = _matcher.GetComponentArray<PointValue>();
             }
+
+            public int Length => _matcher.Length;
+
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<PointValue> PointValue { get; }
         }
     }
 }

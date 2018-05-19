@@ -1,5 +1,6 @@
-namespace Mugen.Experimental.Test
+namespace Mugen.Test
 {
+    using System;
     using Abstraction;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,7 +22,7 @@ namespace Mugen.Experimental.Test
         {
             var manager = new BlueprintManager();
 
-            var blueprint = manager.GetOrCreateBlueprint(new[] {new ComponentType(typeof(Test1)),});
+            var blueprint = manager.GetOrCreateBlueprint(new Span<ComponentType>(new[] {new ComponentType(typeof(Test1)),}));
 
             Assert.IsNotNull(blueprint);
         }
@@ -31,7 +32,7 @@ namespace Mugen.Experimental.Test
         {
             var manager = new BlueprintManager();
 
-            var blueprint = manager.GetOrCreateBlueprint(new[] {new ComponentType(typeof(Test1)),});
+            var blueprint = manager.GetOrCreateBlueprint(new Span<ComponentType>(new[] {new ComponentType(typeof(Test1)),}));
             var blueprint2 = manager.GetOrCreateBlueprint(new[] {new ComponentType(typeof(Test2)),});
 
             Assert.IsNotNull(blueprint);

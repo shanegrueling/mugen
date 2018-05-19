@@ -1,4 +1,4 @@
-﻿namespace Mugen.Abstraction
+﻿namespace Mugen.Abstraction.Arrays
 {
     public interface IComponentArray<T>
     {

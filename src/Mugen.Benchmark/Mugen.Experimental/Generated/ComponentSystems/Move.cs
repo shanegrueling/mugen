@@ -1,9 +1,10 @@
 ﻿namespace Mugen.Benchmark.Mugen.Experimental.Generated.ComponentSystems
 {
     using Abstraction;
+    using Abstraction.Arrays;
     using Abstraction.Systems;
     using Components;
-    using World = global::Mugen.Experimental.World;
+    using World = global::Mugen.World;
 
     internal class Move : AUpdateSystem
     {

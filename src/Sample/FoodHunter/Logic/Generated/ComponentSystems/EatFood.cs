@@ -1,17 +1,18 @@
 ﻿namespace Sample.FoodHunter.Logic.Generated.ComponentSystems
 {
     using Components;
+    using Mugen;
     using Mugen.Abstraction;
+    using Mugen.Abstraction.Arrays;
     using Mugen.Abstraction.CommandBuffers;
     using Mugen.Abstraction.Systems;
-    using Mugen.Experimental;
 
     [GeneratedComponentSystem(typeof(Logic.ComponentSystems.EatFood))]
     public sealed class EatFood : AUpdateSystem
     {
-        private readonly Logic.ComponentSystems.EatFood _eatFood;
         private readonly IEntityCommandBuffer<Logic.ComponentSystems.EatFood> _buffer;
         private readonly Eater _eater;
+        private readonly Logic.ComponentSystems.EatFood _eatFood;
         private readonly Food _food;
 
         public EatFood(World world)
@@ -33,26 +34,21 @@
         {
             private readonly IComponentMatcher _matcher;
 
-            public int Length => _matcher.Length;
-            public IComponentArray<Position> Positions { get; }
-            public IComponentArray<Score> Scores { get; }
-
             public Eater(IComponentMatcher matcher)
             {
                 _matcher = matcher;
                 Positions = _matcher.GetComponentArray<Position>();
                 Scores = _matcher.GetComponentArray<Score>();
             }
+
+            public int Length => _matcher.Length;
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<Score> Scores { get; }
         }
 
         private class Food : Logic.ComponentSystems.EatFood.IFood
         {
             private readonly IComponentMatcher _matcher;
-
-            public int Length => _matcher.Length;
-            public IComponentArray<Position> Positions { get; }
-            public IComponentArray<PointValue> PointValues { get; }
-            public IEntityArray Entities { get; }
 
             public Food(IComponentMatcher matcher)
             {
@@ -61,6 +57,11 @@
                 PointValues = _matcher.GetComponentArray<PointValue>();
                 Entities = _matcher.GetEntityArray();
             }
+
+            public int Length => _matcher.Length;
+            public IComponentArray<Position> Positions { get; }
+            public IComponentArray<PointValue> PointValues { get; }
+            public IEntityArray Entities { get; }
         }
     }
 }

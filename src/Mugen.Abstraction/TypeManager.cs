@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Mugen.Experimental")]
+[assembly: InternalsVisibleTo("Mugen")]
+
 namespace Mugen.Abstraction
 {
     using System;
@@ -8,23 +9,6 @@ namespace Mugen.Abstraction
 
     internal static class TypeManager
     {
-        private struct StaticTypeLookup<T>
-        {
-            public static int TypeIndex = -1;
-        }
-
-        public struct ComponentType
-        {
-            public readonly Type Type;
-            public readonly int Size;
-
-            public ComponentType(Type type)
-            {
-                Type = type;
-                Size = Marshal.SizeOf(type);
-            }
-        }
-
         private static readonly ComponentType[] ComponentTypes = new ComponentType[1024];
         private static int _typeCount = 1;
 
@@ -41,9 +25,12 @@ namespace Mugen.Abstraction
 
         private static int FindTypeIndex(Type type)
         {
-            for (var i = 0; i < _typeCount;++i)
+            for (var i = 0; i < _typeCount; ++i)
             {
-                if (ComponentTypes[i].Type == type) return i;
+                if (ComponentTypes[i].Type == type)
+                {
+                    return i;
+                }
             }
 
             return -1;
@@ -63,6 +50,23 @@ namespace Mugen.Abstraction
             }
 
             return StaticTypeLookup<T>.TypeIndex;
+        }
+
+        private struct StaticTypeLookup<T>
+        {
+            public static int TypeIndex = -1;
+        }
+
+        public struct ComponentType
+        {
+            public readonly Type Type;
+            public readonly int Size;
+
+            public ComponentType(Type type)
+            {
+                Type = type;
+                Size = Marshal.SizeOf(type);
+            }
         }
     }
 }

@@ -2,131 +2,197 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
+    using Abstraction;
+    using Abstraction.CommandBuffers;
 
-    internal unsafe class EntityManager : IEntityManager
+    internal class EntityManager : IEntityManager, IDisposable
     {
-        internal int Version;
-        private readonly List<Blueprint> _blueprints;
-        private readonly List<BlueprintContainer> _blueprintContainers;
+        private readonly BlueprintManager _blueprintManager;
+        private readonly ComponentTypeComparer _comparer;
 
-        private readonly List<ComponentMatcher> _matcher;
+        private readonly List<ComponentMatcher> _componentMatchers;
 
-        private struct EntityInfo
-        {
-            public int BlueprintIndex;
-            public int Version;
-        }
-
-        private EntityInfo* _entityInfos;
-        private int _size;
-        private int _entityCount;
-
-        private readonly Queue<int> _freeEntities;
-
+        private readonly Dictionary<Type, object> _dictionary;
+        private readonly EntityDataManager _entityDataManager;
 
         public EntityManager()
         {
-            _blueprints = new List<Blueprint>();
-            _blueprintContainers = new List<BlueprintContainer>();
-            _matcher = new List<ComponentMatcher>();
-
-            _size = 1024;
-            _entityInfos = (EntityInfo*) Marshal.AllocHGlobal(_size * sizeof(EntityInfo));
-            _freeEntities = new Queue<int>();
+            _blueprintManager = new BlueprintManager();
+            _entityDataManager = new EntityDataManager(_blueprintManager);
+            _comparer = new ComponentTypeComparer();
+            _componentMatchers = new List<ComponentMatcher>();
+            _dictionary = new Dictionary<Type, object>();
         }
 
-        public IComponentMatcher GetMatcher(params Type[] types)
+        public void Dispose()
         {
-            var matcher = new ComponentMatcher(this, types);
-            for (var i = 0; i < _blueprints.Count; ++i)
+            _entityDataManager.Dispose();
+            _blueprintManager.Dispose();
+            foreach (var matcher in _componentMatchers)
             {
-                if(matcher.DoesBlueprintMatch(_blueprints[i]))
-                {
-                    matcher.AddBlueprintContainer(_blueprintContainers[i]);
-                }
+                matcher.Dispose();
             }
-            _matcher.Add(matcher);
+        }
+
+        public IComponentMatcher GetMatcher(params ComponentMatcherTypes[] matcherTypes)
+        {
+            var matcher = new ComponentMatcher(matcherTypes);
+
+            _blueprintManager.CheckBlueprintsForMatcher(matcher);
+
+            _componentMatchers.Add(matcher);
             return matcher;
         }
 
-        public Blueprint CreateBlueprint(params Type[] type)
+        public Blueprint CreateBlueprint(params ComponentType[] types)
         {
-            for (var i = 0; i < _blueprints.Count; ++i)
-            {
-                var blueprint = _blueprints[i];
-                if (blueprint.Fits(type)) return blueprint;
-            }
-
-            var newBlueprint = new Blueprint(type) { Index = _blueprints.Count };
-            var container = new BlueprintContainer(newBlueprint);
-            _blueprints.Add(newBlueprint);
-            _blueprintContainers.Add(container);
-
-            foreach(var matcher in _matcher)
-            {
-                if(matcher.DoesBlueprintMatch(newBlueprint))
-                {
-                    matcher.AddBlueprintContainer(container);
-                }
-            }
-
-            return newBlueprint;
+            InvalidateMatchers();
+            Array.Sort(types, _comparer);
+            return _blueprintManager.GetOrCreateBlueprint(types);
         }
 
-        public IEntityCommandBuffer CreateBuffer() => new EntityCommandBuffer(this);
+        public bool Exist(Entity entity)
+        {
+            return _entityDataManager.Exists(entity);
+        }
+
+        public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
+        {
+            return _entityDataManager.HasComponent(entity, TypeManager.GetIndex<T>());
+        }
+
+        public bool HasComponent(Entity entity, ComponentType T)
+        {
+            return _entityDataManager.HasComponent(entity, T.DataIndex);
+        }
+
+        public ref T GetComponent<T>(Entity entity) where T : unmanaged, IComponent
+        {
+            return ref _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>());
+        }
 
         public Entity CreateEntity(Blueprint blueprint)
         {
-            var entity = Entity.Create();
-            
-            entity.EntityInfoIndex = _freeEntities.Count > 0 ? _freeEntities.Dequeue() : _entityCount++;
+            InvalidateMatchers();
 
-            if(_entityCount > _size)
+            return _entityDataManager.CreateEntity(blueprint);
+        }
+
+        public Entity CreateEntity<TDefinition>(Blueprint<TDefinition> blueprint)
+        {
+            InvalidateMatchers();
+
+            return _entityDataManager.CreateEntity(blueprint.RealBlueprint);
+        }
+
+        public Entity CreateEntity()
+        {
+            InvalidateMatchers();
+
+            return _entityDataManager.CreateEntity();
+        }
+
+        public void AddComponent<T>(in Entity entity) where T : unmanaged, IComponent
+        {
+            InvalidateMatchers();
+
+            _entityDataManager.AddComponent<T>(entity);
+        }
+
+        public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
+        {
+            InvalidateMatchers();
+
+            _entityDataManager.AddComponent(entity, component);
+        }
+
+        public void ReplaceComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
+        {
+            _entityDataManager.GetComponent<T>(entity, TypeManager.GetIndex<T>()) = component;
+        }
+
+        public void SetComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
+        {
+            InvalidateMatchers();
+
+            _entityDataManager.SetComponent(entity, TypeManager.GetIndex<T>(), component);
+        }
+
+        public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent
+        {
+            InvalidateMatchers();
+
+            _entityDataManager.RemoveComponent(entity, TypeManager.GetIndex<T>());
+        }
+
+        public void DeleteEntity(in Entity entity)
+        {
+            InvalidateMatchers();
+
+            _entityDataManager.DeleteEntity(entity);
+        }
+
+        public IEntityCommandBuffer<TSystem> CreateCommandBuffer<TSystem>()
+        {
+            if (_dictionary.TryGetValue(typeof(TSystem), out var commandBuffer))
             {
-                Resize();
+                return (IEntityCommandBuffer<TSystem>) commandBuffer;
             }
 
-            // ReSharper disable once PossibleNullReferenceException
-            ref var entityInfo = ref _entityInfos[entity.EntityInfoIndex];
-            entityInfo.BlueprintIndex = blueprint.Index;
-            entityInfo.Version += 1;
-
-            _blueprintContainers[blueprint.Index].AddEntity(entity);
-
-            ++Version;
-
-            return entity;
+            _dictionary[typeof(TSystem)] = new EntityCommandBuffer<TSystem>(this);
+            return (IEntityCommandBuffer<TSystem>) _dictionary[typeof(TSystem)];
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Resize()
+        public IEntityCommandBuffer<TSystem> GetCommandBuffer<TSystem>()
         {
-            _size *= 2;
+            if (_dictionary.TryGetValue(typeof(TSystem), out var commandBuffer))
+            {
+                return (IEntityCommandBuffer<TSystem>) commandBuffer;
+            }
 
-            _entityInfos = (EntityInfo*)Marshal.ReAllocHGlobal((IntPtr) _entityInfos, new IntPtr(_size * sizeof(EntityInfo)));
+            return null;
         }
 
-        public ref T GetComponent<T>(in Entity entity) where T : struct, IComponent
+        public unsafe void AddComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
         {
-            return ref _blueprintContainers[_entityInfos[entity.EntityInfoIndex].BlueprintIndex].GetComponent<T>(entity);
+            InvalidateMatchers();
+
+            _entityDataManager.AddComponent(entity, componentTypeIndex, pointer);
         }
-    }
 
-    internal static class MultiComponentArray
-    {
-        private static readonly Type MultiContainerArrayType = typeof(MultiComponentArray<>);
-
-        public static IMultiComponentArray CreateFrom(EntityManager manager, Type t)
+        public unsafe void SetComponent(in Entity entity, in int componentTypeIndex, byte* pointer)
         {
-            var mcaGenericType = MultiContainerArrayType.MakeGenericType(t);
-            return (IMultiComponentArray)Activator.CreateInstance(mcaGenericType, manager);
-        }
-    }
+            InvalidateMatchers();
 
-    internal interface IComponentArray
-    {
-        void CreateNew();
+            _entityDataManager.SetComponent(entity, componentTypeIndex, pointer);
+        }
+
+        internal unsafe void ReplaceComponent(Entity entity, int componentTypeIndex, byte* pointer)
+        {
+            _entityDataManager.SetComponent(entity, componentTypeIndex, pointer);
+        }
+
+        internal void RemoveComponent(Entity entity, int componentTypeIndex)
+        {
+            InvalidateMatchers();
+
+            _entityDataManager.RemoveComponent(entity, componentTypeIndex);
+        }
+
+        private void InvalidateMatchers()
+        {
+            foreach (var matcher in _componentMatchers)
+            {
+                matcher.Invalidate();
+            }
+        }
+
+        private class ComponentTypeComparer : IComparer<ComponentType>
+        {
+            public int Compare(ComponentType x, ComponentType y)
+            {
+                return x.DataIndex - y.DataIndex;
+            }
+        }
     }
 }

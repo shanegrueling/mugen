@@ -1,7 +1,5 @@
 ﻿namespace Mugen.Abstraction.CommandBuffers
 {
-    using CommandBuffer;
-
     internal interface IEntityCommandBuffer
     {
         void CreateEntity(in Blueprint blueprint);
@@ -29,7 +27,8 @@
         IEntityCommandBuffer<TSystem> AddComponent<T>(in Entity entity) where T : unmanaged, IComponent;
         IEntityCommandBuffer<TSystem> AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent;
 
-        IEntityCommandBuffer<TSystem> ReplaceComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent;
+        IEntityCommandBuffer<TSystem> ReplaceComponent<T>(in Entity entity, in T component)
+            where T : unmanaged, IComponent;
 
         IEntityCommandBuffer<TSystem> SetComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent;
 

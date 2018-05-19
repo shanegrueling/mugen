@@ -14,8 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Mugen.Abstraction\Mugen.Abstraction.csproj" />
-    <ProjectReference Include="..\..\..\Mugen.Experimental\Mugen.Experimental.csproj" />
     <ProjectReference Include="..\..\..\Mugen.Math\Mugen.Math.csproj" />
+    <ProjectReference Include="..\..\..\Mugen\Mugen.csproj" />
   </ItemGroup>
 
 </Project>

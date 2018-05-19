@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using BenchmarkDotNet.Attributes;
-    using Experimental;
     using Math;
     using Sample.FoodHunter.Logic.Components;
     using Sample.FoodHunter.Logic.Generated.ComponentSystems;

@@ -1,4 +1,4 @@
-﻿namespace Mugen.Experimental
+﻿namespace Mugen
 {
     using System;
     using System.Collections.Generic;
@@ -205,7 +205,7 @@
             {
                 newCt[i] = oldCt[i - 1].TypeIndex;
             }
-            
+
             var newBlueprint = _blueprintManager.GetOrCreateBlueprint(newCt);
 
             if (newBlueprint.BlueprintData->ChunkWithSpace == null)
@@ -223,7 +223,7 @@
                 newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
 
             RemoveEntity(data.Chunk, data.IndexInChunk);
-            
+
             data.BlueprintData = newBlueprint.BlueprintData;
             AllocateEntity(ref data, entity.DataIndex);
         }
@@ -366,7 +366,6 @@
             BlueprintEntityChunk* destinationChunk,
             int destinationIndex)
         {
-
             var sourceBlueprint = sourceChunk->Blueprint;
             var destinationBlueprint = destinationChunk->Blueprint;
 
@@ -392,8 +391,8 @@
                                         sourceBlueprint->SizeOfs[sourceTypeIndex] * sourceIndex;
 
                     var destinationPointer = destinationChunk->Buffer +
-                                              destinationBlueprint->Offsets[destinationTypeIndex] +
-                                              destinationBlueprint->SizeOfs[destinationTypeIndex] * destinationIndex;
+                                             destinationBlueprint->Offsets[destinationTypeIndex] +
+                                             destinationBlueprint->SizeOfs[destinationTypeIndex] * destinationIndex;
 
                     Unsafe.CopyBlock(
                         destinationPointer,
@@ -423,20 +422,15 @@
             _freeEntityDataSlots.Enqueue(entity.DataIndex);
         }
 
-        private struct EntityData
-        {
-            public BlueprintData* BlueprintData;
-            public int Version;
-            public BlueprintEntityChunk* Chunk;
-            public int IndexInChunk;
-        }
-
         public bool HasComponent(Entity entity, int typeIndex)
         {
             ref var data = ref _entityData[entity.DataIndex];
             for (var i = 0; i < data.BlueprintData->ComponentTypesCount; ++i)
             {
-                if (data.BlueprintData->ComponentTypes[i].TypeIndex == typeIndex) return true;
+                if (data.BlueprintData->ComponentTypes[i].TypeIndex == typeIndex)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -445,12 +439,14 @@
         public void RemoveComponent(in Entity entity, int typeIndex)
         {
             ref var data = ref _entityData[entity.DataIndex];
-            Span<int> blueprintComponents =
-                stackalloc int[data.BlueprintData->ComponentTypesCount - 1];
-            
+            Span<int> blueprintComponents = stackalloc int[data.BlueprintData->ComponentTypesCount - 1];
+
             for (int i = 0, newBlueprintComponentsIndex = 0; i < data.BlueprintData->ComponentTypesCount; ++i)
             {
-                if(data.BlueprintData->ComponentTypes[i].TypeIndex == typeIndex) continue;
+                if (data.BlueprintData->ComponentTypes[i].TypeIndex == typeIndex)
+                {
+                    continue;
+                }
 
                 blueprintComponents[newBlueprintComponentsIndex++] = data.BlueprintData->ComponentTypes[i].TypeIndex;
             }
@@ -464,7 +460,7 @@
                 newBlueprint.BlueprintData->LastChunk->NextChunk = chunk;
                 newBlueprint.BlueprintData->LastChunk = chunk;
             }
-            
+
             CopyFromTo(
                 data.Chunk,
                 data.IndexInChunk,
@@ -472,9 +468,17 @@
                 newBlueprint.BlueprintData->ChunkWithSpace->EntityCount);
 
             RemoveEntity(data.Chunk, data.IndexInChunk);
-            
+
             data.BlueprintData = newBlueprint.BlueprintData;
             AllocateEntity(ref data, entity.DataIndex);
+        }
+
+        private struct EntityData
+        {
+            public BlueprintData* BlueprintData;
+            public int Version;
+            public BlueprintEntityChunk* Chunk;
+            public int IndexInChunk;
         }
     }
 }

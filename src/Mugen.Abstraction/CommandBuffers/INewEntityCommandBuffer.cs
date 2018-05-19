@@ -1,7 +1,5 @@
-﻿namespace Mugen.Abstraction.CommandBuffer
+﻿namespace Mugen.Abstraction.CommandBuffers
 {
-    using CommandBuffers;
-
     public interface INewEntityCommandBuffer<TSystem>
     {
         INewEntityCommandBuffer<TSystem> SetComponent<T>(in T component) where T : unmanaged, IComponent;

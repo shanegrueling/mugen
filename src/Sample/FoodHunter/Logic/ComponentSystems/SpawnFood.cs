@@ -3,6 +3,7 @@
     using System;
     using Components;
     using Mugen.Abstraction;
+    using Mugen.Abstraction.Arrays;
     using Mugen.Abstraction.CommandBuffers;
     using Mugen.Math;
 
@@ -22,14 +23,17 @@
 
         public void Update(float deltaTime, IFood food, IGameParameter gameParameter)
         {
-            if (food.Length > 0) return;
-            
+            if (food.Length > 0)
+            {
+                return;
+            }
+
             var size = gameParameter.Sizes[0];
 
             _buffer.CreateEntity(_foodBlueprint)
-                .SetComponent(new Position {Value = new float2(_random.Next(0, size.Value.X), _random.Next(0, size.Value.Y))})
-                .SetComponent(new PointValue { Value = 10 })
-                .Finish();
+                .SetComponent(
+                    new Position {Value = new float2(_random.Next(0, size.Value.X), _random.Next(0, size.Value.Y))})
+                .SetComponent(new PointValue {Value = 10}).Finish();
         }
 
         public interface IFood : IComponentGroup

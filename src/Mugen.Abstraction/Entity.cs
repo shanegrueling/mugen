@@ -1,6 +1,4 @@
-﻿
-
-namespace Mugen.Abstraction
+﻿namespace Mugen.Abstraction
 {
     using System;
 
